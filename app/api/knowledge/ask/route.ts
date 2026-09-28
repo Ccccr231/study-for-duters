@@ -6,6 +6,7 @@ import { currentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { startOfToday } from "@/lib/date";
 import { computeStreak, dateKey } from "@/lib/streak";
+import { extractKeywords } from "@/lib/rag/keywords";
 
 type Hit = { title: string; content: string };
 
@@ -28,6 +29,26 @@ async function search(userId: string, question: string, vector: number[] | null)
     `;
   }
 
+  // 降级检索：整句 ILIKE 对中文提问几乎必然零命中（§14 #18），
+  // 改成 bigram 关键词打分：命中越多的块排越前。
+  const keywords = extractKeywords(question);
+  if (keywords.length > 0) {
+    return prisma.$queryRaw<Hit[]>`
+      SELECT title, content FROM (
+        SELECT d."title" AS title, c."content" AS content,
+          (SELECT count(*) FROM unnest(CAST(${keywords} AS text[])) AS k
+           WHERE c."content" ILIKE '%' || k || '%') AS score
+        FROM "Chunk" c
+        JOIN "Document" d ON c."documentId" = d."id"
+        WHERE d."userId" = ${userId}
+      ) s
+      WHERE s.score > 0
+      ORDER BY s.score DESC, s.title
+      LIMIT ${TOP_K}
+    `;
+  }
+
+  // 问题里提不出任何关键词（纯标点等），退回整句匹配，聊胜于无
   const keyword = `%${question.slice(0, 40)}%`;
   return prisma.$queryRaw<Hit[]>`
     SELECT d."title" AS title, c."content" AS content

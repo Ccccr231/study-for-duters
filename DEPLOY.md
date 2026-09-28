@@ -6,13 +6,16 @@
 ## 1. Neon 建库
 
 1. Neon 控制台新建项目（区域选离 Vercel 部署区最近的，通常新加坡/美西）。
-2. 打开 SQL Editor，**整段执行** `prisma/migrations/000000_init/migration.sql`
-   （含 `CREATE EXTENSION vector`，pgvector 与业务表同库）。
-3. 复制连接串（带 `sslmode=require` 的那条）。
+2. 应用迁移，两种方式选一个：
+   - **首选**：本地填好 `.env` 后 `pnpm exec prisma migrate deploy`；
+   - **fallback**：如果 schema-engine 连不上（Windows 上 CLI 子进程参数转义的已知问题，
+     或 Neon 冷启动超时），用 `node scripts/apply-migration.mjs`——直接走 pg 驱动执行
+     `prisma/migrations/000000_init/migration.sql` 并在 `_prisma_migrations` 登记，幂等。
+3. 复制连接串（带 `sslmode=require` 的那条）。**不要带 `channel_binding=require`**：
+   pg 驱动没问题，但 Prisma schema-engine 不支持。
 
-> 如果之后想在本地跑 `pnpm exec prisma migrate deploy` 管理迁移，需要先
-> `pnpm exec prisma migrate resolve --applied 000000_init` 对齐迁移记录。
-> 只在 Vercel 上用、不再本地演进 schema 的话，跳过这步也行。
+> 2026-09-28 验收记录：当前 Neon 库（us-east-2）已通过 `scripts/apply-migration.mjs`
+> 完成迁移，9 张业务表 + pgvector 扩展就绪；17 项端到端验收全部通过（`scripts/e2e.mjs`）。
 
 ## 2. 环境变量
 
@@ -34,7 +37,14 @@
 
 ## 4. 上线后逐项验收（手动，约 10 分钟）
 
-按顺序点一遍，任何一步失败先查 Vercel Function Logs：
+先在本地跑自动化验收（需要生产服务器已启动）：
+
+```bash
+pnpm exec next build && pnpm exec next start -p 3100
+DEEPSEEK_API_KEY=sk-... node scripts/e2e.mjs   # 17 项：页面/对话/知识库降级/报告落库
+```
+
+再按顺序手动点一遍（e2e 覆盖不了表单与 Server Action），任何一步失败先查 Vercel Function Logs：
 
 - [ ] 落地页 200，favicon 是大工蓝「连」字标
 - [ ] 注册新账号 → 自动进入 `/today`

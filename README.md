@@ -42,7 +42,9 @@ pnpm dev                  # http://localhost:3000
 | `pnpm dev` | 开发服务器 |
 | `pnpm build` / `pnpm start` | 生产构建 / 启动 |
 | `pnpm typecheck` | 类型检查 |
-| `pnpm test` | 单元测试（vitest，W2 的 Compute 阶段会用到） |
+| `pnpm test` | 单元测试（vitest） |
+| `node scripts/apply-migration.mjs` | 手动应用迁移（schema-engine 连不上 Neon 时的 fallback，幂等） |
+| `node scripts/e2e.mjs` | 端到端验收 17 项（需先起生产服务器 + `DEEPSEEK_API_KEY` 环境变量） |
 
 ## 目录
 

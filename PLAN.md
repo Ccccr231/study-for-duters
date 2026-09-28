@@ -584,6 +584,8 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 15 | §4.3 测试连接「不回显上游错误」 | 补上**登录鉴权**（W2 漏了） | 未鉴权的 `/api/settings/test` 是一个「服务端代发请求」入口，可被用来盲探内网地址、白嫖函数资源。冒烟确认 5 个 API 路由未登录全部 401。 |
 | 16 | §8.2 降级路径只说了检索端 | **ingest 端同样降级**：未配 embedding 或向量化失败时，文档照常落库、分块不带向量（`embedding` 列本来就是 nullable），响应带 `degraded: true` | 原实现「没配 embedding 就 400」，导致降级路径永远走不到——没配 embedding 的用户根本传不了资料，检索端的 ILIKE 降级形同虚设。改后「传了资料就能问」不依赖 embedding 可用。 |
 | 17 | §8.2 ingest「批量写 Chunk（每批 ≤ 50 条）」 | W2 实际是逐条 INSERT；本轮改为 `Prisma.sql` + `Prisma.join` 的批量插入，每批 50 | 200k 字约 250 块，逐条是 250 次数据库往返，Vercel 60s 超时风险；批量后最多 5 次。 |
+| 18 | §8.2 降级「回退 Postgres 全文检索」 | 从整句 ILIKE 改为 **bigram 关键词打分排序**（`lib/rag/keywords.ts`，纯函数 + 6 例单测） | 端到端验收发现：中文自然语言提问整句 ILIKE 几乎必然零命中，降级形同虚设。bigram 打分后「红黑树插入时叔叔是红色怎么办」能稳定命中并标注来源（e2e 实测通过）。 |
+| 19 | §12 建表「在 Neon 控制台执行 migration.sql」 | 提供 `scripts/apply-migration.mjs`（pg 驱动执行 + 登记 `_prisma_migrations`，幂等） | Prisma CLI 的 schema-engine 在本机连不上 Neon（子进程参数转义/冷启动；`channel_binding=require` 也不支持，连接串里要去掉）。CLI 能用的环境仍首选 `migrate deploy`。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 
