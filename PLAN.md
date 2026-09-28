@@ -551,7 +551,7 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 
 ---
 
-## 14. 实现偏差记录（W1，2026-09-28）
+## 14. 实现偏差记录（W1 / W2，2026-09-28）
 
 实现与本文档不一致的地方，全部记在这里，避免文档和代码各说一套。
 
@@ -562,6 +562,16 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 3 | §3 未指定 Next 版本 | Next **16.3.6**：`middleware.ts` 已 deprecated，改用 **`proxy.ts`**（default export `proxy`） | 框架升级带来的约定变化，已按新约定实现。 |
 | 4 | §3 依赖清单含 `pdf-parse` / `mammoth` | 未安装 | 与 §2「MVP 只收 `.md`」一致，v1.1 扩格式时再装。 |
 | 5 | §7 日期语义未说明 | 打卡与统计**按 UTC 切日**（`lib/date.ts`） | 服务端跑在 UTC。单校区场景够用；跨时区时把时区存进 `UserSetting` 再按偏移切日。 |
+
+### W2（2026-09-28）
+
+| # | 文档原计划 | 实际做法 | 原因 |
+|---|---|---|---|
+| 6 | §12 对话前端「用 Vercel AI SDK 的 `useChat`」 | 前端 `fetch` + `getReader()` 手动读流，接口统一返回 `text/plain` | 避开 AI SDK React 助手与服务端版本的耦合，协议自己说了算，移动端 fetch 流已够用。 |
+| 7 | §12 RAG 引用展示未约定协议 | 流的第一行输出 `__SOURCES__[标题数组]`，再跟正文流，前端拆第一行渲染引用 | 自研 `text/plain` 流没有 AI SDK 的 data channel，用最简单的行协议传递来源。 |
+| 8 | §7 向量检索假定 embedding 必配 | 用户未配 embedding 时降级为 `ILIKE` 关键词检索（仍走 `pgvector` 表，不报错） | LLM 配置全由用户自填，embedding 可能缺失；降级保证知识库「能用」，配好后自动走向量。 |
+| 9 | §12 分块「按 token 切」 | 按**字符数**近似（800/120 滑窗），先按标题切段、小段合并、标题作前缀保留 | 中文 token 化要引依赖，字符近似 + 结构保留已够；`lib/rag/chunk.ts` 有单测覆盖。 |
+| 10 | 未提单元测试 | 引入 vitest（`vitest.config.mts`），覆盖分块 / AI 配置解析 / 连续打卡纯函数（15 例） | 纯函数不依赖 DB，先把能测的钉住；DB 路径留给 Neon 就绪后的端到端验证。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 

@@ -8,7 +8,8 @@
 ## 当前进度
 
 - ✅ **W1**：账号（邮箱+密码）、学习计划与任务、番茄钟、打卡（连续天数 + 12 周热力图）、大工蓝主题、移动端布局
-- ⏳ W2：连小理对话（流式）+ 知识库 RAG（`.md` → 分块 → embedding → pgvector）
+- ✅ **W2**：连小理对话（流式）、知识库 RAG（`.md` → 分块 → embedding → pgvector，未配 embedding 时降级全文检索）、设置页自填 LLM 配置（默认只存浏览器）
+  - 待端到端验证：连数据库与真实 LLM 配置后的实际效果（见 PLAN.md §14）
 - ⏳ W3：Agent Loop、每日学习报告、上线
 
 详见 `PLAN.md`（方案与里程碑）、`REVIEW-2026-09-28.md`（外部执行审查记录）。
@@ -51,15 +52,25 @@ app/
   (app)/plans         计划列表 / 计划详情（任务 CRUD）
   (app)/focus         番茄钟（25 / 45 分钟，结束落库）
   (app)/checkin       打卡 + 12 周热力图
+  (app)/chat          连小理对话（流式）
+  (app)/knowledge     知识库：上传 .md / 检索问答
+  (app)/settings/model  LLM 配置（Base URL / Key / Model，默认只存浏览器）
+  api/chat            连小理流式接口（注入学习数据）
+  api/knowledge/      ingest（分块+向量入库）/ ask（检索，降级 ILIKE）
+  api/settings/test   测试 LLM 连接（不回显上游错误）
 lib/
   db.ts               Prisma 7 + @prisma/adapter-pg
   auth/               password（scrypt）· session（jose Cookie）· constants
   actions/            Server Actions：auth / study
   date.ts             按 UTC 切日的日期工具
+  ai/                 配置解析 · provider · 连小理 system prompt · 浏览器侧配置
+  rag/                Markdown 分块（800/120，小段合并）
+  streak.ts           连续打卡天数（纯函数）
 components/
   dut/                海浪 · 主楼剪影 · 玉兰（自绘）
-  shell/              底部导航
+  shell/              底部导航（5 tab）
   study/              今日任务 · 番茄钟 · 打卡日历
+  liaxiaoli/          对话面板    knowledge/  知识库面板    settings/  模型设置
 proxy.ts              会话粗筛（Next 16 的 middleware 新约定）
 ```
 

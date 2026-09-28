@@ -18,6 +18,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <span className="text-sm font-medium text-dut-deep">连小理</span>
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/knowledge" className="text-sm text-muted">
+              资料
+            </Link>
+            <Link href="/settings/model" className="text-sm text-muted">
+              设置
+            </Link>
             <span className="hidden text-sm text-muted sm:inline">
               {user.name ?? user.email}
             </span>

@@ -8,6 +8,7 @@ const TABS = [
   { href: "/plans", label: "计划" },
   { href: "/focus", label: "专注" },
   { href: "/checkin", label: "打卡" },
+  { href: "/chat", label: "连小理" },
 ];
 
 export function BottomNav() {

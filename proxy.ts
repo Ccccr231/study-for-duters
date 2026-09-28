@@ -37,6 +37,7 @@ export const config = {
     '/focus/:path*',
     '/checkin/:path*',
     '/knowledge/:path*',
+    '/chat/:path*',
     '/reports/:path*',
     '/settings/:path*',
   ],
