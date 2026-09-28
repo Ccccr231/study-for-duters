@@ -43,7 +43,16 @@
 pnpm exec next build && pnpm exec next start -p 3100
 DEEPSEEK_API_KEY=sk-... node scripts/e2e.mjs      # 17 项：页面/对话/知识库降级/报告落库
 DEEPSEEK_API_KEY=sk-... node scripts/ui-e2e.mjs   # 11 项：注册/登录/计划任务/打卡/设置/聊天/知识库/报告（真实 Chrome）
+pnpm test                                          # 40 例单元测试
+pnpm typecheck                                     # 类型检查
 ```
+
+> 在受限执行环境（沙箱禁了 `child_process` 的 pipe）里，上面三条会因 `spawn EPERM` 跑不起来：
+> vitest 换 `--config vitest.sandbox.config.mts`（`threads` 池）可跑；
+> `next build` 的 **Compiled successfully** 阶段能过（代码/依赖/路由无错），
+> 但 Next 16 在「Collecting page data / 静态生成」阶段要用子进程起 22 个 worker，必然被拒。
+> **结论：本机沙箱只能验证 compile + 独立 `tsc`，完整 `next build` 与 e2e 必须在正常终端里跑。**
+> 这不是项目问题，换到普通 shell 即可。
 
 再按顺序手动点一遍（浏览器验收已覆盖的项可快速过），任何一步失败先查 Vercel Function Logs：
 
@@ -63,6 +72,12 @@ DEEPSEEK_API_KEY=sk-... node scripts/ui-e2e.mjs   # 11 项：注册/登录/计�
 
 ## 5. 已知边界与遗留项
 
+- **Server Action 已加固**（2026-09-28，见 `AUDIT-2026-09-28-静态审查.md`）：全部 7 个 Action
+  都带 `requireUser()` 与 `userId` 归属过滤；本轮补了三处——专注时长服务端钳制到 ≤180 分钟
+  （防手改表单灌假数据）、番茄钟 `taskId` 归属校验、打卡并发冲突按幂等处理。
+- **向量维度固定 1536**：`Chunk.embedding` 是 `vector(1536)`，配 embedding 模型时输出维度必须一致
+  （OpenAI text-embedding-3-small = 1536 可以；768/3072 维的模型会在 ingest 时报维度不匹配，
+  需要改迁移重建列）。向量写入与余弦检索已过数据库级验证（2026-09-28）。
 - **日期按 UTC 切日**（`lib/date.ts`）：北京时间早 8 点前的记录会算到前一天，
   单校区够用；跨时区再把时区存进 `UserSetting`。
 - **没有 Cron 定时报告**：LLM 配置默认只存浏览器，服务端拿不到 key，

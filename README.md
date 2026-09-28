@@ -8,13 +8,12 @@
 ## 当前进度
 
 - ✅ **W1**：账号（邮箱+密码）、学习计划与任务、番茄钟、打卡（连续天数 + 12 周热力图）、大工蓝主题、移动端布局
-- ✅ **W2**：连小理对话（流式）、知识库 RAG（`.md` → 分块 → embedding → pgvector，未配 embedding 时降级全文检索）、设置页自填 LLM 配置（默认只存浏览器）
-  - 待端到端验证：连数据库与真实 LLM 配置后的实际效果（见 PLAN.md §14）
-- ⏳ **W3**：Agent Loop、每日学习报告、上线
-  - 已做：每日学习报告（`/reports`，Observe → Compute → Narrate；指标纯函数 + 27 例单测；报告落库 `Report` 表；建议 action 只展示不自动写库）
-  - 未做：Vercel Cron 定时生成（受「配置默认只存浏览器」约束，见 PLAN §14）、上线
+- ✅ **W2**：连小理对话（流式）、知识库 RAG（`.md` → 分块 → embedding → pgvector，未配 embedding 时降级 bigram 关键词检索）、设置页自填 LLM 配置（默认只存浏览器）
+- ✅ **W3**：Agent Loop（Observe → Compute → Narrate，指标纯函数 + 33 例单测）、每日学习报告（`/reports`，落库 `Report` 表，建议 action 只展示不自动写库）、上线就绪（安全头 / 404 / 错误页 / 自绘图标 / robots）
+- ⏳ **上线**：Vercel 部署待执行（`DEPLOY.md` 是完整手册）；Vercel Cron 定时报告未做（受「LLM 配置默认只存浏览器」约束，见 PLAN §14 #13）
+- ✅ **验证**：接口级 e2e 17/17、浏览器 UI e2e 11/11（真实 Chrome + 真实 Neon）、单元测试 40/40
 
-详见 `PLAN.md`（方案与里程碑）、`REVIEW-2026-09-28.md`（外部执行审查记录）。
+详见 `PLAN.md`（方案与里程碑）、`DEPLOY.md`（上线手册）、`AUDIT-2026-09-28-静态审查.md`（Server Action 权属与幂等审查）、`REVIEW-2026-09-28.md`（外部执行审查记录）。
 
 ## 技术栈
 
@@ -89,3 +88,31 @@ proxy.ts              会话粗筛（Next 16 的 middleware 新约定）
 - **认证**：邮箱 + 密码，scrypt 哈希，会话为 httpOnly Cookie（JWT，30 天）。
 - **日期**：按 UTC 切日，见 `lib/date.ts`。
 - **不使用 next/font/google**：构建期需连外网，改用系统中文字体栈。
+- **密钥不落库**：平台的 LLM 配置（Base URL / Key / Model）默认只存浏览器 localStorage；
+  服务端不接受也不保存任何预置密钥，日志不记请求体。部署方只需配 `DATABASE_URL` 与 `AUTH_SECRET`。
+
+## 测试
+
+| 命令 | 作用 |
+|---|---|
+| `pnpm typecheck` | TypeScript 类型检查（0 错误） |
+| `pnpm test` | 单元测试（vitest，40 例：日期钳制 / 分块 / 关键词 / 报告指标 / 行协议 / LLM 配置 / 连续打卡） |
+
+> 受限执行环境（如沙箱里 `child_process` 的 pipe 被禁）下，vitest 默认的 `forks` 池起不来，
+> 可改用等价的 `node node_modules/vitest/vitest.mjs run --config vitest.sandbox.config.mts`
+> （只把池换成 `threads`）。正常机器上继续用 `pnpm test`。
+
+## 许可与合规
+
+- 本项目以 **MIT License** 开源，见 [LICENSE](LICENSE)。
+- **非官方**：个人项目，与大连理工大学无隶属关系，不代表校方立场；
+  不使用官方校徽与标准字，视觉元素（海浪 / 玉兰 / 主楼剪影）均为自绘抽象图形。
+- **依赖许可已盘点**：全树 570 个包，无 GPL / AGPL / SSPL / 商业限制类许可，
+  以 MIT（433）/ ISC（56）/ Apache-2.0（49）为主；
+  含弱 copyleft 的仅 MPL-2.0（`lightningcss`、`axe-core`）、EPL-2.0（`elkjs`，均为构建/测试期依赖）
+  与 `@img/sharp-win32-x64`（`Apache-2.0 AND LGPL-3.0-or-later`，Next 自带的可选图像优化二进制），
+  这些不影响本项目以 MIT 分发。
+- **不预置任何资料**：知识库只承载用户自己上传的内容，仓库内不含第三方题库 / 教材 / 试卷。
+- **AI 生成内容**：连小理的回答由使用者自配的模型生成，可能出错；统计数字由 SQL / 纯函数算出（不经模型），
+  但模型对数字的文字解读仍需自行判断。
+
