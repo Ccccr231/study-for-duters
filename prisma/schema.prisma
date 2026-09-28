@@ -1,10 +1,12 @@
 // Study for DUTERS · 数据模型
 // 依据 PLAN.md §7「数据模型（Prisma，7 张表）」
 //
-// 与 PLAN §7 的两处偏差（需回写 PLAN）：
-// 1) User 增加 githubId / avatarUrl —— 认证走 GitHub OAuth。PLAN §0 写的
-//    「沿用现有 Cookie 方案」以「存在现有代码」为前提；实测存量代码不存在
-//    （本地目录 / GitHub / 工作区三处皆无），故认证为新建。
+// 与 PLAN §7 的偏差（需回写 PLAN）：
+// 1) 认证改为「邮箱 + 密码」自建（User.passwordHash），不是 PLAN §0 写的「沿用现有 Cookie 方案」。
+//    原因：a) 存量代码不存在（本地 / GitHub / 工作区三处皆无），"沿用"没有事实基础；
+//          b) 无邮件服务通道，邮箱验证码跑不通；
+//          c) 面向本校学生，GitHub OAuth 覆盖率不足且国内登录不稳。
+//    会话仍用 httpOnly Cookie（JWT），所以「Cookie 方案」的意图保留。
 // 2) datasource 块不再写 url —— Prisma 7 起 url 只能放 prisma.config.ts，
 //    运行时通过 driver adapter（@prisma/adapter-pg）传入连接。
 
@@ -18,12 +20,12 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  githubId  String   @unique
-  email     String   @unique
-  name      String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String // scrypt，见 lib/auth/password.ts
+  name         String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
 
   plans     Plan[]
   tasks     Task[]

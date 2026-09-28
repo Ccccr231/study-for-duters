@@ -549,6 +549,22 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
   3. 已跑通、可保留的模块清单
   4. 必须砍掉的模块清单
 
+---
+
+## 14. 实现偏差记录（W1，2026-09-28）
+
+实现与本文档不一致的地方，全部记在这里，避免文档和代码各说一套。
+
+| # | 文档原计划 | 实际做法 | 原因 |
+|---|---|---|---|
+| 1 | §0 认证「沿用现有 Cookie 方案」 | 改为**邮箱 + 密码自建**：scrypt 哈希（`lib/auth/password.ts`）+ jose 签发 JWT 存 httpOnly Cookie | 存量代码确认不存在，"沿用"无事实基础；无邮件服务通道，验证码方案跑不通；面向本校学生，GitHub OAuth 覆盖率不足且国内登录不稳。**Cookie 会话的意图保留**。 |
+| 2 | §12 W1「月历热力图用 `cal-heatmap`，别手写 d3」 | 手写 CSS grid 12 周热力图（`components/study/CheckInCalendar.tsx`） | cal-heatmap 是客户端图表库（带 d3），首屏要额外 JS 且 SSR 不便；这里的数据量用 CSS grid 服务端直出即可、移动端更稳。**没有手写 d3**，不违背该条的初衷；若以后要 tooltip / 缩放再换。 |
+| 3 | §3 未指定 Next 版本 | Next **16.3.6**：`middleware.ts` 已 deprecated，改用 **`proxy.ts`**（default export `proxy`） | 框架升级带来的约定变化，已按新约定实现。 |
+| 4 | §3 依赖清单含 `pdf-parse` / `mammoth` | 未安装 | 与 §2「MVP 只收 `.md`」一致，v1.1 扩格式时再装。 |
+| 5 | §7 日期语义未说明 | 打卡与统计**按 UTC 切日**（`lib/date.ts`） | 服务端跑在 UTC。单校区场景够用；跨时区时把时区存进 `UserSetting` 再按偏移切日。 |
+
+**仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
+
   **盘点结论如果与 §7 / §12 冲突，先改 PLAN 再写代码。**
 
 其余：

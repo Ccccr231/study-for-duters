@@ -41,6 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma client 生成物（由 prisma generate 产生）
+/lib/generated
+
 # 本机专用（绝对路径 / 镜像），不入库
 .npmrc
 
