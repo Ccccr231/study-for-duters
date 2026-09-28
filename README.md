@@ -98,9 +98,7 @@ proxy.ts              会话粗筛（Next 16 的 middleware 新约定）
 | `pnpm typecheck` | TypeScript 类型检查（0 错误） |
 | `pnpm test` | 单元测试（vitest，40 例：日期钳制 / 分块 / 关键词 / 报告指标 / 行协议 / LLM 配置 / 连续打卡） |
 
-> 受限执行环境（如沙箱里 `child_process` 的 pipe 被禁）下，vitest 默认的 `forks` 池起不来，
-> 可改用等价的 `node node_modules/vitest/vitest.mjs run --config vitest.sandbox.config.mts`
-> （只把池换成 `threads`）。正常机器上继续用 `pnpm test`。
+以上三项均已在真实环境跑过：`next build` 20/20 页通过、`tsc` 0 错误、`eslint` 0 问题、vitest 40/40。
 
 ## 许可与合规
 

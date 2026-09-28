@@ -47,14 +47,10 @@ pnpm test                                          # 40 例单元测试
 pnpm typecheck                                     # 类型检查
 ```
 
-> 在受限执行环境（沙箱禁了 `child_process` 的 pipe）里，上面三条会因 `spawn EPERM` 跑不起来：
-> vitest 换 `--config vitest.sandbox.config.mts`（`threads` 池）可跑；
-> `next build` 的 **Compiled successfully** 阶段能过（代码/依赖/路由无错），
-> 但 Next 16 在「Collecting page data / 静态生成」阶段要用子进程起 22 个 worker，必然被拒。
-> **结论：本机沙箱只能验证 compile + 独立 `tsc`，完整 `next build` 与 e2e 必须在正常终端里跑。**
-> 这不是项目问题，换到普通 shell 即可。
+> 本机已实测：`pnpm build` 完整通过（20/20 页）、`pnpm typecheck` 0 错误、`pnpm test` 40/40。
+> e2e 脚本需要 `DEEPSEEK_API_KEY`（聊天/知识库/报告三项会调模型），没配 key 时只覆盖其余项。
 
-再按顺序手动点一遍（浏览器验收已覆盖的项可快速过），任何一步失败先查 Vercel Function Logs：
+再按顺序手动点一遍（浏览器验收已覆盖的项可快速过），任何一步失败先查部署平台的 Function Logs：
 
 - [ ] 落地页 200，favicon 是大工蓝「连」字标
 - [ ] 注册新账号 → 自动进入 `/today`
