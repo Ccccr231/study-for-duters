@@ -2,8 +2,10 @@
 # Study for DUTERS · 服务器一键部署（Ubuntu 22.04 / 24.04，无域名、IP + 端口访问）
 #
 # 用法（在服务器上以 root 运行）：
-#   curl -fsSL https://raw.githubusercontent.com/Ccccr231/study-for-duters/main/deploy/install.sh -o install.sh
-#   sudo bash install.sh
+#   若仓库已转 public：
+#     curl -fsSL https://raw.githubusercontent.com/Ccccr231/study-for-duters/main/deploy/install.sh -o install.sh
+#   若仓库仍是 private：用 scp 从本地上传，或在服务器上用带 token 的地址 clone 后取本文件。
+#   然后： sudo bash install.sh
 #
 # 脚本会做：
 #   1. 装 Node.js 22 + pnpm

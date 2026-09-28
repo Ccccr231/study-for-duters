@@ -22,13 +22,40 @@
 
 ---
 
-## 2. 一键部署
+## 2. 部署
+
+### 2.1 把脚本弄到服务器上
+
+仓库当前是**私有**的，所以 `curl raw.githubusercontent.com` 会 404。三选一：
+
+**方式 A：从你电脑上传（最简单）**
+
+```powershell
+# 在你这台 Windows 上执行（把 IP 换成服务器公网 IP）
+scp C:\Users\chenr\Documents\deepseek-harness\default-workspace\study-for-duters\deploy\install.sh root@你的公网IP:/root/
+```
+
+**方式 B：服务器上直接 clone（用 token）**
+
+```bash
+git clone https://<你的GitHub用户名>:<PAT>@github.com/Ccccr231/study-for-duters.git /tmp/sfd
+cp /tmp/sfd/deploy/install.sh /root/
+```
+
+> 这会往 shell 历史里留下 token；用完执行 `history -c`，并给 PAT 设最短有效期。
+
+**方式 C：仓库转 public 之后（最省事）**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Ccccr231/study-for-duters/main/deploy/install.sh -o install.sh
+```
+
+### 2.2 执行
 
 登录服务器（`ssh root@你的公网IP`），然后：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ccccr231/study-for-duters/main/deploy/install.sh -o install.sh
-sudo bash install.sh
+sudo bash /root/install.sh
 ```
 
 脚本会依次完成：装 Node 22 + pnpm → 拉代码到 `/opt/study-for-duters` →
