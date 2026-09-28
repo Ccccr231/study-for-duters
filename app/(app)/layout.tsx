@@ -21,6 +21,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <Link href="/knowledge" className="text-sm text-muted">
               资料
             </Link>
+            <Link href="/reports" className="text-sm text-muted">
+              报告
+            </Link>
             <Link href="/settings/model" className="text-sm text-muted">
               设置
             </Link>

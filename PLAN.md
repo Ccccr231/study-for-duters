@@ -551,7 +551,7 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 
 ---
 
-## 14. 实现偏差记录（W1 / W2，2026-09-28）
+## 14. 实现偏差记录（W1 / W2 / W3，2026-09-28）
 
 实现与本文档不一致的地方，全部记在这里，避免文档和代码各说一套。
 
@@ -572,6 +572,15 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 8 | §7 向量检索假定 embedding 必配 | 用户未配 embedding 时降级为 `ILIKE` 关键词检索（仍走 `pgvector` 表，不报错） | LLM 配置全由用户自填，embedding 可能缺失；降级保证知识库「能用」，配好后自动走向量。 |
 | 9 | §12 分块「按 token 切」 | 按**字符数**近似（800/120 滑窗），先按标题切段、小段合并、标题作前缀保留 | 中文 token 化要引依赖，字符近似 + 结构保留已够；`lib/rag/chunk.ts` 有单测覆盖。 |
 | 10 | 未提单元测试 | 引入 vitest（`vitest.config.mts`），覆盖分块 / AI 配置解析 / 连续打卡纯函数（15 例） | 纯函数不依赖 DB，先把能测的钉住；DB 路径留给 Neon 就绪后的端到端验证。 |
+
+### W3（2026-09-28，进行中）
+
+| # | 文档原计划 | 实际做法 | 原因 |
+|---|---|---|---|
+| 11 | §8.1 stale = 「连续 2 天未推进」 | 近似为**未完成且创建超过 2 天**（`lib/report/compute.ts`） | `Task` 表没有 `updatedAt` / 推进记录，无法判断"未推进"；v1.1 加字段后改回严格定义。 |
+| 12 | §8.1 Execute「仅执行白名单内 Action，写库前记录 reason」 | Execute **不自动写库**：模型的 action 建议（仅 `create_task`）解析后存进 `Report.stats`，页面上展示「连小理建议」，由用户手动到计划页添加 | 报告生成发生在用户浏览时，自动建任务会在用户没确认的情况下改数据；且 `Task` 必须挂 `planId`，AI 不知道该挂哪个计划。安全口径更严，不违背白名单初衷。 |
+| 13 | §12 W3「每日学习报告 + Vercel Cron 定时任务」 | 暂不做 Cron，改为**用户打开 `/reports` 手动触发生成** | 硬性约定「LLM 配置默认只存浏览器 localStorage」，服务端 Cron 拿不到用户的 key，无法替用户调模型；等「可选加密存库」（UserSetting.apiKeyEnc）流程做完再补 Cron。 |
+| 14 | §8.1 Narrate 用 `generateObject` 输出 `{summary, actions}` | 用 `streamText` + 固定行协议（`SUMMARY:` / `ADVICE:` / `ACTION: create_task \| 标题 \| 理由`），`parseNarration` 纯函数解析 | 与 W2 的 `__SOURCES__` 行协议一个思路：openai-compatible 各家对结构化输出支持参差不齐，行协议最稳且可单测（7 例）；格式损坏时全文降级为 summary。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 
