@@ -49,10 +49,19 @@ export function KnowledgePanel() {
           content,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; chunks?: number; error?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        chunks?: number;
+        error?: string;
+        degraded?: boolean;
+        message?: string;
+      };
       setIngestMsg(
         data.ok
-          ? { ok: true, text: `已入库，切成 ${data.chunks} 块` }
+          ? {
+              ok: true,
+              text: `已入库，切成 ${data.chunks} 块${data.degraded && data.message ? `（${data.message}）` : ""}`,
+            }
           : { ok: false, text: data.error ?? "入库失败" },
       );
       if (data.ok) {

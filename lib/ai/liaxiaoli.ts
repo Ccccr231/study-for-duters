@@ -42,6 +42,13 @@ export function buildSystemPrompt(ctx?: StudyContext): string {
       lines.push(`[${s.title}] ${s.content}`);
     }
     lines.push("如果这些内容不足以回答，直接说资料库里没有，不要编。");
+  } else if (ctx.sources) {
+    // sources 传了但是空数组 = 检索过但没命中（undefined 则是这次对话没走检索）
+    lines.push(
+      "",
+      "【知识库检索】没有命中任何内容。直接告诉用户资料库里没有这部分，",
+      "并提示可以去「资料」页上传相关笔记，不要凭印象回答。",
+    );
   }
 
   return lines.join("\n");

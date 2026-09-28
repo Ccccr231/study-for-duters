@@ -581,6 +581,9 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 12 | §8.1 Execute「仅执行白名单内 Action，写库前记录 reason」 | Execute **不自动写库**：模型的 action 建议（仅 `create_task`）解析后存进 `Report.stats`，页面上展示「连小理建议」，由用户手动到计划页添加 | 报告生成发生在用户浏览时，自动建任务会在用户没确认的情况下改数据；且 `Task` 必须挂 `planId`，AI 不知道该挂哪个计划。安全口径更严，不违背白名单初衷。 |
 | 13 | §12 W3「每日学习报告 + Vercel Cron 定时任务」 | 暂不做 Cron，改为**用户打开 `/reports` 手动触发生成** | 硬性约定「LLM 配置默认只存浏览器 localStorage」，服务端 Cron 拿不到用户的 key，无法替用户调模型；等「可选加密存库」（UserSetting.apiKeyEnc）流程做完再补 Cron。 |
 | 14 | §8.1 Narrate 用 `generateObject` 输出 `{summary, actions}` | 用 `streamText` + 固定行协议（`SUMMARY:` / `ADVICE:` / `ACTION: create_task \| 标题 \| 理由`），`parseNarration` 纯函数解析 | 与 W2 的 `__SOURCES__` 行协议一个思路：openai-compatible 各家对结构化输出支持参差不齐，行协议最稳且可单测（7 例）；格式损坏时全文降级为 summary。 |
+| 15 | §4.3 测试连接「不回显上游错误」 | 补上**登录鉴权**（W2 漏了） | 未鉴权的 `/api/settings/test` 是一个「服务端代发请求」入口，可被用来盲探内网地址、白嫖函数资源。冒烟确认 5 个 API 路由未登录全部 401。 |
+| 16 | §8.2 降级路径只说了检索端 | **ingest 端同样降级**：未配 embedding 或向量化失败时，文档照常落库、分块不带向量（`embedding` 列本来就是 nullable），响应带 `degraded: true` | 原实现「没配 embedding 就 400」，导致降级路径永远走不到——没配 embedding 的用户根本传不了资料，检索端的 ILIKE 降级形同虚设。改后「传了资料就能问」不依赖 embedding 可用。 |
+| 17 | §8.2 ingest「批量写 Chunk（每批 ≤ 50 条）」 | W2 实际是逐条 INSERT；本轮改为 `Prisma.sql` + `Prisma.join` 的批量插入，每批 50 | 200k 字约 250 块，逐条是 250 次数据库往返，Vercel 60s 超时风险；批量后最多 5 次。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 

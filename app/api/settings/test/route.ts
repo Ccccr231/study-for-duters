@@ -1,10 +1,15 @@
 import { generateText } from "ai";
 import { PARSE_FAILURE_TEXT, parseLlmConfig } from "@/lib/ai/config";
 import { chatModel } from "@/lib/ai/provider";
+import { currentUser } from "@/lib/auth/session";
 
 // 测试连接：只返回 true/false + 泛化原因，不回显上游错误原文（避免把 key 或内网地址带出来）。
+// 必须登录：否则会成为一个未鉴权的「服务端代发请求」入口，可被用来盲探内网地址。
 // 见 PLAN §4.3。
 export async function POST(req: Request) {
+  const user = await currentUser();
+  if (!user) return Response.json({ ok: false, message: "未登录" }, { status: 401 });
+
   let body: unknown;
   try {
     body = await req.json();

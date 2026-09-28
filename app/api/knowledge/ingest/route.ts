@@ -1,4 +1,5 @@
 import { embedMany } from "ai";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { PARSE_FAILURE_TEXT, parseLlmConfig } from "@/lib/ai/config";
 import { embeddingModel } from "@/lib/ai/provider";
 import { currentUser } from "@/lib/auth/session";
@@ -7,8 +8,13 @@ import { chunkMarkdown } from "@/lib/rag/chunk";
 
 // MVP 只收 Markdown（PLAN §2「RAG 的 MVP 边界」）：
 // PDF/DOCX 需要解析库 + 后台任务，在 Vercel 免费层 60s 超时下最容易卡死，v1.1 再扩。
+//
+// 降级口径（PLAN §8.2 / §14 #16）：没配 embedding 或向量化失败时，
+// 文档照常落库、分块不带向量，检索端自然走 ILIKE 关键词匹配——
+// 「传了资料就能问」不依赖 embedding 可用。
 
 const MAX_CONTENT_CHARS = 200_000; // 约 5~8 万字，够一份笔记
+const INSERT_BATCH = 50; // 每批最多 50 条，避免单条往返打满 Vercel 函数时长（PLAN §8.2）
 
 function toVectorLiteral(values: number[]): string {
   return `[${values.join(",")}]`;
@@ -32,31 +38,28 @@ export async function POST(req: Request) {
     return Response.json({ error: "内容太大了，先拆成几份再传" }, { status: 413 });
   }
 
-  const parsed = parseLlmConfig(body.config);
-  if (!parsed.ok) {
-    return Response.json({ error: PARSE_FAILURE_TEXT[parsed.reason] }, { status: 400 });
-  }
-  if (!parsed.config.embedModel) {
-    return Response.json(
-      { error: "还没填 Embedding 模型，无法建立索引（去设置页补一个）" },
-      { status: 400 },
-    );
-  }
-
   const chunks = chunkMarkdown(content);
   if (chunks.length === 0) return Response.json({ error: "没切出有效内容" }, { status: 400 });
 
-  let embeddings: number[][];
-  try {
-    const result = await embedMany({
-      model: embeddingModel(parsed.config),
-      values: chunks,
-      maxRetries: 1,
-    });
-    embeddings = result.embeddings;
-  } catch (err) {
-    console.error("[ingest] embed failed", err instanceof Error ? err.name : "unknown");
-    return Response.json({ error: "向量化失败：检查 Embedding 模型名是否填对" }, { status: 502 });
+  // 尝试向量化：没配 embedding 模型或调用失败都降级为无向量落库
+  let embeddings: number[][] | null = null;
+  let degradedReason: string | null = null;
+
+  const parsed = parseLlmConfig(body.config);
+  if (!parsed.ok || !parsed.config.embedModel) {
+    degradedReason = "未配置 Embedding 模型";
+  } else {
+    try {
+      const result = await embedMany({
+        model: embeddingModel(parsed.config),
+        values: chunks,
+        maxRetries: 1,
+      });
+      embeddings = result.embeddings;
+    } catch (err) {
+      console.error("[ingest] embed failed, storing without vectors", err instanceof Error ? err.name : "unknown");
+      degradedReason = "向量化失败（Embedding 模型名或额度问题）";
+    }
   }
 
   const doc = await prisma.document.create({
@@ -64,13 +67,32 @@ export async function POST(req: Request) {
     select: { id: true },
   });
 
-  // 向量列是 Unsupported 类型，Prisma 的 ORM 写不了，走原生 SQL
-  for (let i = 0; i < chunks.length; i++) {
-    await prisma.$executeRaw`
-      INSERT INTO "Chunk" ("id", "documentId", "content", "order", "embedding")
-      VALUES (${crypto.randomUUID()}, ${doc.id}, ${chunks[i]}, ${i}, ${toVectorLiteral(embeddings[i])}::vector)
-    `;
+  // 向量列是 Unsupported 类型，Prisma 的 ORM 写不了，走原生 SQL 批量插入（每批 ≤ 50）
+  for (let start = 0; start < chunks.length; start += INSERT_BATCH) {
+    const batch = chunks.slice(start, start + INSERT_BATCH);
+    if (embeddings) {
+      const rows = batch.map(
+        (chunk, i) =>
+          Prisma.sql`(${crypto.randomUUID()}, ${doc.id}, ${chunk}, ${start + i}, ${toVectorLiteral(embeddings[start + i])}::vector)`,
+      );
+      await prisma.$executeRaw(
+        Prisma.sql`INSERT INTO "Chunk" ("id", "documentId", "content", "order", "embedding") VALUES ${Prisma.join(rows)}`,
+      );
+    } else {
+      const rows = batch.map(
+        (chunk, i) => Prisma.sql`(${crypto.randomUUID()}, ${doc.id}, ${chunk}, ${start + i})`,
+      );
+      await prisma.$executeRaw(
+        Prisma.sql`INSERT INTO "Chunk" ("id", "documentId", "content", "order") VALUES ${Prisma.join(rows)}`,
+      );
+    }
   }
 
-  return Response.json({ ok: true, documentId: doc.id, chunks: chunks.length });
+  return Response.json({
+    ok: true,
+    documentId: doc.id,
+    chunks: chunks.length,
+    degraded: embeddings === null,
+    ...(degradedReason ? { message: `${degradedReason}，已按「无向量」保存，问答会走关键词匹配` } : {}),
+  });
 }
