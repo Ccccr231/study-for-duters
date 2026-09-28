@@ -1,0 +1,15 @@
+# Windows 未启用长路径（LongPathsEnabled=0），pnpm 默认的 isolated 布局
+# （node_modules/.pnpm/<name>@<ver>_<hash>/node_modules/...）会让 Next 的深层文件
+# 超过 MAX_PATH 260，导致部分文件写入失败、node_modules 半残。
+# hoisted 使用扁平布局，把路径压回安全范围。
+nodeLinker: hoisted
+
+allowBuilds:
+  '@prisma/engines': true
+  prisma: true
+  sharp: false
+  unrs-resolver: false
+minimumReleaseAgeExclude:
+  - '@ai-sdk/gateway@4.0.96'
+  - '@ai-sdk/react@4.0.121'
+  - ai@7.0.118

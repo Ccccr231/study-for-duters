@@ -1,0 +1,154 @@
+// Study for DUTERS · 数据模型
+// 依据 PLAN.md §7「数据模型（Prisma，7 张表）」
+//
+// 与 PLAN §7 的两处偏差（需回写 PLAN）：
+// 1) User 增加 githubId / avatarUrl —— 认证走 GitHub OAuth。PLAN §0 写的
+//    「沿用现有 Cookie 方案」以「存在现有代码」为前提；实测存量代码不存在
+//    （本地目录 / GitHub / 工作区三处皆无），故认证为新建。
+// 2) datasource 块不再写 url —— Prisma 7 起 url 只能放 prisma.config.ts，
+//    运行时通过 driver adapter（@prisma/adapter-pg）传入连接。
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  githubId  String   @unique
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  plans     Plan[]
+  tasks     Task[]
+  sessions  PomodoroSession[]
+  checkIns  CheckIn[]
+  documents Document[]
+  reports   Report[]
+  setting   UserSetting?
+}
+
+model Plan {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String // "数据结构期末冲刺"
+  goal      String? // 目标描述
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("active") // active | archived
+  createdAt DateTime @default(now())
+
+  tasks Task[]
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  planId    String
+  userId    String
+  title     String
+  done      Boolean   @default(false)
+  dueDate   DateTime?
+  estimate  Int? // 预计番茄数
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, done])
+  @@index([planId, sortOrder])
+}
+
+model PomodoroSession {
+  id        String    @id @default(cuid())
+  userId    String
+  taskId    String?
+  startedAt DateTime
+  endedAt   DateTime?
+  duration  Int // 分钟，通常 25
+  completed Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}
+
+model CheckIn {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime // 当天 00:00
+  note   String?
+  streak Int // 冗余：当天连续天数
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model Document {
+  // 知识库
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  sourceUrl String? // OSS 地址
+  mimeType  String // MVP 只收 md
+  status    String   @default("pending") // pending | ready | failed
+  createdAt DateTime @default(now())
+
+  chunks Chunk[]
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model Chunk {
+  // 向量分块（pgvector）
+  id         String                       @id @default(cuid())
+  documentId String
+  content    String
+  order      Int
+  embedding  Unsupported("vector(1536)")? // 维度按所选 embedding 模型定
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, order])
+}
+
+model Report {
+  // AI 学习报告 / 长期记忆载体
+  id      String   @id @default(cuid())
+  userId  String
+  date    DateTime
+  content String // Markdown
+  summary String // 供下次 Agent 读取的压缩记忆
+  stats   Json // 专注时长、完成率等快照
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model UserSetting {
+  // 用户自填 LLM（可选加密存储）
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  provider    String // openai-compatible | anthropic
+  baseUrl     String
+  apiKeyEnc   String? // AES-GCM 密文，null = 仅本地存储
+  keyHint     String? // "sk-...abcd"
+  chatModel   String
+  embedModel  String?
+  temperature Float   @default(0.3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
