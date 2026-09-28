@@ -20,6 +20,9 @@ export function ChatPanel() {
 
   useEffect(() => {
     const c = loadLlmConfig();
+    // 故意用 effect + setState：LLM 配置只在浏览器 localStorage 里，
+    // 首次渲染（含 SSR）必须当作"未配置"，挂载后再读，否则与水合结果不一致。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig(c);
     setReady(hasLlmConfig(c));
   }, []);

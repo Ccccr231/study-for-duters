@@ -1,6 +1,6 @@
 import { embedMany } from "ai";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { PARSE_FAILURE_TEXT, parseLlmConfig } from "@/lib/ai/config";
+import { parseLlmConfig } from "@/lib/ai/config";
 import { embeddingModel } from "@/lib/ai/provider";
 import { currentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";

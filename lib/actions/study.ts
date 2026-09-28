@@ -3,18 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth/session";
+import { clampSessionMinutes, startOfToday } from "@/lib/date";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/**
- * 当天 00:00。
- * 已知简化：按 UTC 切日，不是用户本地时区。面向单校区场景够用，
- * v2 若要跨时区，改成把用户时区存进 UserSetting 再按偏移切日。
- */
-function startOfToday(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-}
 
 function refresh() {
   revalidatePath("/today");
@@ -103,7 +94,15 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
 
 /* ---------------- 番茄钟 ---------------- */
 
-/** 结束一次专注并落库。duration 由服务端按 startedAt 计算，不信前端传的时长。 */
+/**
+ * 结束一次专注并落库。
+ *
+ * 两个入口参数都来自浏览器，必须服务端自证：
+ * 1) duration 由服务端按 startedAt 计算并**钳制上限**（见 clampSessionMinutes），
+ *    不信前端传的时长——否则手改表单能灌任意大的 duration 进统计与报告；
+ * 2) taskId 必须校验归属当前用户。PomodoroSession.taskId 在 schema 里没有外键，
+ *    不校验就能把专注记录挂到别人的任务上。
+ */
 export async function finishPomodoroAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const startedAtRaw = String(formData.get("startedAt") ?? "");
@@ -113,7 +112,13 @@ export async function finishPomodoroAction(formData: FormData): Promise<void> {
   const startedAt = new Date(startedAtRaw);
   if (Number.isNaN(startedAt.getTime())) return;
 
-  const duration = Math.max(1, Math.round((Date.now() - startedAt.getTime()) / 60000));
+  if (taskId) {
+    const own = await prisma.task.findFirst({
+      where: { id: taskId, userId: user.id },
+      select: { id: true },
+    });
+    if (!own) return;
+  }
 
   await prisma.pomodoroSession.create({
     data: {
@@ -121,7 +126,7 @@ export async function finishPomodoroAction(formData: FormData): Promise<void> {
       taskId,
       startedAt,
       endedAt: new Date(),
-      duration,
+      duration: clampSessionMinutes(startedAt),
       completed,
     },
   });
@@ -130,6 +135,13 @@ export async function finishPomodoroAction(formData: FormData): Promise<void> {
 
 /* ---------------- 打卡 ---------------- */
 
+/**
+ * 打卡。幂等：同一天重复点不改变数据。
+ *
+ * 这里的 findUnique → create 是 check-then-act，两次并发请求（双击 / 重放）会同时
+ * 通过上面的存在性检查，再由数据库 @@unique([userId, date]) 拦下第二个——不接住就抛 500。
+ * 所以冲突按「已打卡」处理，而不是让用户看到错误页。
+ */
 export async function checkInAction(): Promise<void> {
   const user = await requireUser();
   const today = startOfToday();
@@ -138,7 +150,7 @@ export async function checkInAction(): Promise<void> {
     where: { userId_date: { userId: user.id, date: today } },
     select: { id: true },
   });
-  if (existing) return; // 幂等：同一天重复点不改变数据
+  if (existing) return;
 
   const yesterday = new Date(today.getTime() - DAY_MS);
   const prev = await prisma.checkIn.findUnique({
@@ -146,8 +158,13 @@ export async function checkInAction(): Promise<void> {
     select: { streak: true },
   });
 
-  await prisma.checkIn.create({
-    data: { userId: user.id, date: today, streak: (prev?.streak ?? 0) + 1 },
-  });
+  try {
+    await prisma.checkIn.create({
+      data: { userId: user.id, date: today, streak: (prev?.streak ?? 0) + 1 },
+    });
+  } catch (e) {
+    // P2002 = 唯一约束冲突，等价于「这一天已经打过卡」，幂等处理。
+    if ((e as { code?: string })?.code !== "P2002") throw e;
+  }
   refresh();
 }

@@ -17,6 +17,9 @@ export function ModelSettings() {
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   useEffect(() => {
+    // 故意用 effect + setState：配置只在浏览器 localStorage 里，
+    // 首次渲染（含 SSR）必须用 EMPTY_CONFIG，挂载后再读，否则与水合结果不一致。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig(loadLlmConfig() ?? EMPTY_CONFIG);
     setLoaded(true);
   }, []);

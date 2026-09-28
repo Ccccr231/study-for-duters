@@ -20,6 +20,9 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
   const [remaining, setRemaining] = useState(DEFAULT_MINUTES * 60);
   const [saving, setSaving] = useState(false);
   const startedAtRef = useRef<Date | null>(null);
+  // 用 ref 而不是 saving state 做重入锁：同一事件循环里连点两次时，
+  // state 还没重渲染，两次调用都会读到 saving === false，会重复落库两条记录。
+  const savingRef = useRef(false);
 
   const total = minutes * 60;
 
@@ -39,17 +42,22 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
   }, [endsAt]);
 
   async function finish(completed: boolean) {
-    if (!startedAtRef.current || saving) return;
+    if (!startedAtRef.current || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     const fd = new FormData();
     fd.set("startedAt", startedAtRef.current.toISOString());
     fd.set("completed", completed ? "1" : "0");
     if (taskId) fd.set("taskId", taskId);
 
-    await finishPomodoroAction(fd);
-    startedAtRef.current = null;
-    setSaving(false);
-    router.refresh();
+    try {
+      await finishPomodoroAction(fd);
+      startedAtRef.current = null;
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+      router.refresh();
+    }
   }
 
   function start() {
@@ -189,7 +197,11 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
           </button>
         )}
         {started && (
-          <button onClick={reset} className="h-10 rounded-lg px-4 text-sm text-muted">
+          <button
+            onClick={reset}
+            disabled={saving}
+            className="h-10 rounded-lg px-4 text-sm text-muted disabled:opacity-50"
+          >
             放弃
           </button>
         )}
