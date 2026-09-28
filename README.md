@@ -46,6 +46,16 @@ pnpm dev                  # http://localhost:3000
 | `node scripts/e2e.mjs` | 接口级端到端验收 17 项（需先起生产服务器 + `DEEPSEEK_API_KEY` 环境变量） |
 | `node scripts/ui-e2e.mjs` | 浏览器 UI 验收 11 项（真实 Chrome 走注册/登录/表单/聊天/报告，截图存 `scripts/ui-e2e-shots/`） |
 
+## 部署
+
+| 方式 | 文档 | 适用 |
+|---|---|---|
+| Vercel + Neon | `DEPLOY.md` | 有 Vercel 账号，免运维 |
+| **自己的服务器** | `deploy/SERVER.md` + `deploy/install.sh` | 要 24/7 在线、不想依赖第三方平台 |
+
+服务器方式为一键脚本（Ubuntu）：装 Node、拉代码、建 `.env`、构建、注册 systemd 开机自启、
+开放端口、自检，全程无需手工配置。
+
 ## 目录
 
 ```
@@ -80,6 +90,9 @@ components/
   liaxiaoli/          对话面板    knowledge/  知识库面板    settings/  模型设置
   reports/            报告生成面板
 proxy.ts              会话粗筛（Next 16 的 middleware 新约定）
+deploy/
+  install.sh          服务器一键部署（Ubuntu，装依赖 → 构建 → systemd 自启）
+  SERVER.md           自托管手册（选机器、安全组、运维、上 HTTPS）
 ```
 
 ## 说明
