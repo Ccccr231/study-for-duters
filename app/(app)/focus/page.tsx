@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { Magnolia } from "@/components/dut/Magnolia";
 import { PomodoroTimer } from "@/components/study/PomodoroTimer";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { startOfToday } from "@/lib/date";
+
+export const metadata: Metadata = { title: "专注" };
 
 export default async function FocusPage() {
   const user = await requireUser();

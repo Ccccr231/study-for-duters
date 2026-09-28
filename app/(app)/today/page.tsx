@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { WaveDivider } from "@/components/dut/WaveDivider";
 import { Magnolia } from "@/components/dut/Magnolia";
 import { TodayTasks } from "@/components/study/TodayTasks";
@@ -6,6 +7,8 @@ import { checkInAction } from "@/lib/actions/study";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { formatChineseDate, startOfToday } from "@/lib/date";
+
+export const metadata: Metadata = { title: "今日" };
 
 export default async function TodayPage() {
   const user = await requireUser();

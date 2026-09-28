@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import { CheckInCalendar } from "@/components/study/CheckInCalendar";
 import { checkInAction } from "@/lib/actions/study";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { startOfToday } from "@/lib/date";
+import { computeStreak } from "@/lib/streak";
+
+export const metadata: Metadata = { title: "打卡" };
 
 export default async function CheckInPage() {
   const user = await requireUser();
@@ -16,20 +20,8 @@ export default async function CheckInPage() {
 
   const days = checkIns.map((c) => c.date.toISOString().slice(0, 10));
   const checkedToday = days.includes(today.toISOString().slice(0, 10));
-  const latest = checkIns.at(-1);
-
-  // 连续天数：从最后一次打卡往回推，断一天就停
-  let current = 0;
-  if (latest && (latest.date.getTime() === today.getTime() || latest.date.getTime() === today.getTime() - 86400000)) {
-    const sorted = [...checkIns].sort((a, b) => a.date.getTime() - b.date.getTime());
-    let cursor = latest.date.getTime();
-    for (let i = sorted.length - 1; i >= 0; i--) {
-      if (sorted[i].date.getTime() === cursor) {
-        current += 1;
-        cursor -= 86400000;
-      } else break;
-    }
-  }
+  // 连续天数统一走 lib/streak.ts 的纯函数（与报告、连小理共用同一套规则）
+  const current = computeStreak(days, today.toISOString().slice(0, 10));
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">

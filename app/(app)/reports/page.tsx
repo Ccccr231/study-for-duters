@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { ReportPanel } from "@/components/reports/ReportPanel";
+
+export const metadata: Metadata = { title: "学习报告" };
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { formatChineseDate, startOfToday } from "@/lib/date";

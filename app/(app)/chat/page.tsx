@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { ChatPanel } from "@/components/liaxiaoli/ChatPanel";
+
+export const metadata: Metadata = { title: "连小理" };
 
 export default function ChatPage() {
   return (

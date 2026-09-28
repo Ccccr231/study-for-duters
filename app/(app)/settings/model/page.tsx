@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { ModelSettings } from "@/components/settings/ModelSettings";
+
+export const metadata: Metadata = { title: "模型设置" };
 
 export default function ModelSettingsPage() {
   return (

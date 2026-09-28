@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Magnolia } from "@/components/dut/Magnolia";
 import {
@@ -9,6 +10,8 @@ import {
 } from "@/lib/actions/study";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
+
+export const metadata: Metadata = { title: "计划详情" };
 
 export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]">) {
   const user = await requireUser();

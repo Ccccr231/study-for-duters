@@ -1,9 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { MainBuildingSilhouette } from "@/components/dut/MainBuildingSilhouette";
 import { WaveDivider } from "@/components/dut/WaveDivider";
 import { currentUser } from "@/lib/auth/session";
+
+export const metadata: Metadata = { title: "注册" };
 
 export default async function RegisterPage({ searchParams }: PageProps<"/register">) {
   const user = await currentUser();
