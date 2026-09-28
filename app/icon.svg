@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#1A5FB4"/>
+  <text x="32" y="41" font-size="30" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, sans-serif" font-weight="600">连</text>
+  <path d="M10 53 q5.5 -4.5 11 0 t11 0 t11 0 t11 0" stroke="#9FC2EC" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>
