@@ -44,7 +44,8 @@ pnpm dev                  # http://localhost:3000
 | `pnpm typecheck` | 类型检查 |
 | `pnpm test` | 单元测试（vitest） |
 | `node scripts/apply-migration.mjs` | 手动应用迁移（schema-engine 连不上 Neon 时的 fallback，幂等） |
-| `node scripts/e2e.mjs` | 端到端验收 17 项（需先起生产服务器 + `DEEPSEEK_API_KEY` 环境变量） |
+| `node scripts/e2e.mjs` | 接口级端到端验收 17 项（需先起生产服务器 + `DEEPSEEK_API_KEY` 环境变量） |
+| `node scripts/ui-e2e.mjs` | 浏览器 UI 验收 11 项（真实 Chrome 走注册/登录/表单/聊天/报告，截图存 `scripts/ui-e2e-shots/`） |
 
 ## 目录
 

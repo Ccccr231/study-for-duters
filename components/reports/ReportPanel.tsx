@@ -45,9 +45,17 @@ export function ReportPanel({ date, hasReport }: { date: string; hasReport: bool
         const { done, value } = await reader.read();
         if (done) break;
         acc += decoder.decode(value, { stream: true });
-        setText(acc);
+        // 流里带行协议标记（SUMMARY:/ADVICE:/ACTION:），展示时剥掉，落库的是解析后的干净版本
+        setText(
+          acc
+            .replace(/^ACTION[:：].*$/gm, "")
+            .replace(/^SUMMARY[:：]\s?/gm, "")
+            .replace(/^ADVICE[:：]\s?/gm, "· ")
+            .trimStart(),
+        );
       }
-      // 报告已在服务端落库，刷新服务端组件显示正式内容
+      // 报告已在服务端落库：清掉流式预览，刷新出正式的「今日报告」卡片
+      setText("");
       router.refresh();
     } catch {
       setError("网络中断，等一下再试");

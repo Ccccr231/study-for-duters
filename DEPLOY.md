@@ -41,10 +41,11 @@
 
 ```bash
 pnpm exec next build && pnpm exec next start -p 3100
-DEEPSEEK_API_KEY=sk-... node scripts/e2e.mjs   # 17 项：页面/对话/知识库降级/报告落库
+DEEPSEEK_API_KEY=sk-... node scripts/e2e.mjs      # 17 项：页面/对话/知识库降级/报告落库
+DEEPSEEK_API_KEY=sk-... node scripts/ui-e2e.mjs   # 11 项：注册/登录/计划任务/打卡/设置/聊天/知识库/报告（真实 Chrome）
 ```
 
-再按顺序手动点一遍（e2e 覆盖不了表单与 Server Action），任何一步失败先查 Vercel Function Logs：
+再按顺序手动点一遍（浏览器验收已覆盖的项可快速过），任何一步失败先查 Vercel Function Logs：
 
 - [ ] 落地页 200，favicon 是大工蓝「连」字标
 - [ ] 注册新账号 → 自动进入 `/today`
