@@ -270,19 +270,32 @@ a {
   animation: intro-zoom var(--intro-dur, 2400ms) var(--ease-in-out) both;
 }
 
-/* 校训在徽标下方，独立淡入淡出（不跟着放大，否则会糊成一片） */
+/* 校训在徽标下方，独立淡入淡出（不跟着放大，否则会糊成一片）。
+   注意不能 nowrap + 大 letter-spacing：390px 窄屏上会直接横向溢出被截断。 */
 .intro-motto {
   position: absolute;
-  left: 50%;
-  bottom: 18%;
-  transform: translateX(-50%);
-  white-space: nowrap;
+  left: 0;
+  right: 0;
+  bottom: 16%;
+  margin-inline: auto;
+  max-width: min(22rem, calc(100% - 3rem));
+  text-align: center;
   color: rgb(255 255 255 / 0.9);
-  font-size: 13px;
-  letter-spacing: 0.42em;
-  /* 每个字之间用 · 分隔后，末字也带间隔符号会右偏，补一点左移 */
-  margin-left: 0.21em;
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  /* letter-spacing 会在每个字后面都加空隙（包括最后一个），整体看起来右偏，
+     用 text-indent 补回半个字距让视觉居中 */
+  text-indent: 0.32em;
+  line-height: 1.8;
   animation: intro-motto var(--intro-dur, 2400ms) var(--ease-in-out) both;
+}
+
+@media (min-width: 640px) {
+  .intro-motto {
+    font-size: 13px;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+  }
 }
 
 /* 减弱动效：不做推进，只做一次短淡出——序列本来就不该是"必须观看"的内容 */

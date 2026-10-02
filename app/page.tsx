@@ -12,6 +12,14 @@ const FEATURES = [
   ["复盘", "连小理每天给你一份学习报告"],
 ] as const;
 
+/** 一天的节奏。用学生自己的时间感说话，比功能清单更容易被代入。 */
+const RHYTHM = [
+  ["07:30 早", "定今天", "把今天要做的三件事写进计划，别一睁眼就刷手机。", "bg-amber"],
+  ["14:00 午", "沉下去", "一个 25 分钟番茄钟接一个，专注的时长会自己攒起来。", "bg-dut"],
+  ["21:00 晚", "打上卡", "连续天数涨一格。断掉的那天，往往是「就差一次」。", "bg-jade"],
+  ["23:00 夜", "说两句", "连小理看完你今天的真实数据，给你一份复盘和建议。", "bg-dut-deep"],
+] as const;
+
 export default async function Home() {
   const user = await currentUser();
   if (user) redirect("/today");
@@ -62,6 +70,49 @@ export default async function Home() {
             </li>
           ))}
         </ul>
+
+        {/* 一天的节奏：把四个功能翻译成"你的一天"，情绪价值落在这里——
+            功能列表说服理性，日常叙事才让人想用。 */}
+        <section className="w-full">
+          <h2 className="text-center text-sm font-medium tracking-tight text-ink">
+            在大工的每一天
+          </h2>
+          <p className="mt-1 text-center text-xs text-muted">
+            凌水河边的四年，值得被认真记下来
+          </p>
+
+          <ol className="mt-6 flex w-full flex-col gap-0 sm:mx-auto sm:max-w-lg">
+            {RHYTHM.map(([when, title, desc, color], i) => (
+              <li key={when} className="relative flex gap-4 pb-6 last:pb-0">
+                {/* 时间轴：竖线 + 节点。最后一个不画线，避免尾巴悬空 */}
+                <div className="flex flex-col items-center">
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color}`} />
+                  {i < RHYTHM.length - 1 && (
+                    <span className="mt-1 w-px flex-1 bg-line" aria-hidden="true" />
+                  )}
+                </div>
+                <div className="-mt-1 min-w-0">
+                  <p className="text-[11px] tracking-widest text-muted">{when}</p>
+                  <p className="mt-0.5 text-[15px] font-medium text-ink">{title}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-muted">{desc}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* 校训带：1949 是建校年。这里只做身份认同，不放任何官方声明口径的东西。 */}
+        <section className="w-full rounded-xl bg-dut-mist px-5 py-6 text-center">
+          <p className="text-[22px] leading-relaxed font-medium tracking-[0.2em] text-dut-deep">
+            海纳百川 · 自强不息
+          </p>
+          <p className="mt-2 text-xs tracking-[0.18em] text-dut/70">
+            厚德笃学 · 知行合一
+          </p>
+          <p className="mt-3 text-[11px] tracking-widest text-muted">
+            1949 — 至今
+          </p>
+        </section>
 
         <div className="flex w-full flex-col gap-3 sm:flex-row">
           <Link

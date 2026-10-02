@@ -44,6 +44,20 @@ const db = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: f
 await db.connect();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true });
 
+// 等开场序列（首次进入会有 2.4s 的校徽推进）结束再截图，
+// 否则全新 context 下拍到的是开场层而不是页面。返回访问者不会有这一层。
+async function waitIntroDone(page) {
+  await page
+    .waitForFunction(
+      () => {
+        const el = document.querySelector(".intro");
+        return !el || getComputedStyle(el).display === "none";
+      },
+      { timeout: 8000 },
+    )
+    .catch(() => {});
+}
+
 let count = 0;
 try {
   // 公开页必须用**未登录**上下文拍：/ 在已登录时会 redirect 到 /today，否则拍到的是今日页
@@ -54,6 +68,7 @@ try {
     await pubPage.setViewportSize({ width: vp.width, height: vp.height });
     for (const path of PUBLIC) {
       await pubPage.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
+      await waitIntroDone(pubPage);
       await pubPage.waitForTimeout(600); // 让入场动效走完
       await pubPage.screenshot({
         path: `${OUT}${vp.name}${path.replace(/\//g, "-") || "-root"}.png`,
