@@ -136,7 +136,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
           value={taskId}
           onChange={(e) => setTaskId(e.target.value)}
           disabled={started}
-          className="h-11 w-full max-w-xs rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut disabled:opacity-60"
+          className="h-11 w-full max-w-xs rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut disabled:opacity-60"
         >
           <option value="">不关联任务</option>
           {tasks.map((t) => (

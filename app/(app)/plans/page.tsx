@@ -24,7 +24,7 @@ export default async function PlansPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
-      <h1 className="text-xl font-medium text-ink">学习计划</h1>
+      <h1 className="text-xl font-medium tracking-tight text-ink">学习计划</h1>
 
       <form
         action={createPlanAction}
@@ -34,12 +34,12 @@ export default async function PlansPage() {
           name="title"
           required
           placeholder="计划名，例如「数据结构期末冲刺」"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
           name="goal"
           placeholder="目标（可留空）"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
         <button
           type="submit"

@@ -25,7 +25,7 @@ export default async function CheckInPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
-      <h1 className="text-xl font-medium text-ink">打卡</h1>
+      <h1 className="text-xl font-medium tracking-tight text-ink">打卡</h1>
 
       <section className="rounded-xl bg-white p-4 ring-1 ring-line">
         <div className="flex items-center justify-between">

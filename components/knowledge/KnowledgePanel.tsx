@@ -19,6 +19,9 @@ export function KnowledgePanel() {
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  // 错误单独用一个状态，不要塞回 answer：answer 是流式正文（每个 chunk 都在变），
+  // 把错误混进去既会让它出现在错误的位置，也无法被屏幕阅读器作为一次状态变化播报。
+  const [askError, setAskError] = useState<string | null>(null);
   const [sources, setSources] = useState<string[]>([]);
   const [asking, setAsking] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -83,6 +86,7 @@ export function KnowledgePanel() {
     if (!q || !config) return;
     setAsking(true);
     setAnswer("");
+    setAskError(null);
     setSources([]);
 
     try {
@@ -93,7 +97,7 @@ export function KnowledgePanel() {
       });
       if (!res.ok || !res.body) {
         const d = await res.json().catch(() => null);
-        setAnswer((d as { error?: string })?.error ?? "请求失败");
+        setAskError((d as { error?: string })?.error ?? "请求失败");
         return;
       }
 
@@ -125,7 +129,7 @@ export function KnowledgePanel() {
         setAnswer(acc);
       }
     } catch {
-      setAnswer("网络中断，等一下再试");
+      setAskError("网络中断，等一下再试");
     } finally {
       setAsking(false);
     }
@@ -236,6 +240,14 @@ export function KnowledgePanel() {
           </div>
         )}
 
+        {askError && (
+          <p role="status" className="panel-in text-sm text-red-600">
+            {askError}
+          </p>
+        )}
+
+        {/* 回答区是流式的（每个 chunk 都在变），所以不加 aria-live——
+            否则读屏会被反复打断。它只承载正文，错误走上面的独立通道。 */}
         {answer && (
           <div className="rounded-lg bg-surface p-3 text-[15px] whitespace-pre-wrap text-ink">
             {answer}

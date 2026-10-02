@@ -9,7 +9,7 @@ export default function NotFound() {
       <p className="text-sm text-muted">地址可能输错了，或者内容已经被移走。</p>
       <Link
         href="/today"
-        className="flex h-10 items-center rounded-lg bg-dut px-5 text-sm font-medium text-white"
+        className="press flex h-10 items-center rounded-lg bg-dut px-5 text-sm font-medium text-white"
       >
         回到今日
       </Link>

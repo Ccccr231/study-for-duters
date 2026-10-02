@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <div className="bg-dut-mist px-6 pt-10 pb-2">
         <div className="mx-auto flex w-full max-w-md flex-col items-center gap-2">
           <MainBuildingSilhouette className="h-20 w-auto" />
-          <h1 className="text-xl font-medium text-dut-deep">Study for DUTERS</h1>
+          <h1 className="text-xl font-medium tracking-tight text-dut-deep">Study for DUTERS</h1>
           <p className="text-sm text-muted">计划 → 专注 → 打卡 → 复盘</p>
         </div>
       </div>
@@ -31,7 +31,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <AuthForm mode="login" next={target} />
         <p className="mt-6 text-center text-sm text-muted">
           还没有账号？
-          <Link href="/register" className="ml-1 text-dut">
+          {/* 行内 <a> 上 transform 不生效，必须配 inline-block 才有按压反馈 */}
+          <Link href="/register" className="tap ml-1 inline-block text-dut">
             注册一个
           </Link>
         </p>

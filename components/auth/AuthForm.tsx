@@ -20,7 +20,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
           <input
             name="name"
             autoComplete="nickname"
-            className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+            className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
           />
         </label>
       )}
@@ -33,7 +33,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
           required
           autoComplete="email"
           placeholder="you@example.com"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
       </label>
 
@@ -46,7 +46,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
           minLength={isLogin ? undefined : 8}
           autoComplete={isLogin ? "current-password" : "new-password"}
           placeholder={isLogin ? "" : "至少 8 位"}
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
       </label>
 

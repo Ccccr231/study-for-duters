@@ -1,13 +1,22 @@
 // 主楼剪影：极简线条稿（中间塔楼 + 两侧对称配楼 + 台阶）。
 // 自绘抽象轮廓，不使用学校官方素材——见 PLAN §6.3 的合规约定。
+//
+// tone="onBlue" 用于蓝色 hero 背景：默认的深蓝描边放在 bg-dut 上等于隐形，
+// 必须换成白色描边才能透出线条。
 export function MainBuildingSilhouette({
   className = "h-24 w-auto",
+  tone = "default",
 }: {
   className?: string;
+  tone?: "default" | "onBlue";
 }) {
+  const stroke = tone === "onBlue" ? "rgba(255,255,255,0.85)" : "var(--dut-blue-deep)";
+  // onBlue 用于大面积的 hero 水印，要靠外层 opacity 控深浅，
+  // 所以内部线条给满透明度（否则 0.55 × 外层 opacity 会淡到看不见）。
+  const groupOpacity = tone === "onBlue" ? 1 : 0.55;
   return (
     <svg viewBox="0 0 320 120" className={className} aria-hidden="true">
-      <g stroke="var(--dut-blue-deep)" strokeWidth="1.6" fill="none" opacity="0.55">
+      <g stroke={stroke} strokeWidth="1.6" fill="none" opacity={groupOpacity}>
         {/* 两侧配楼 */}
         <path d="M20 96 V52 H84 V96" />
         <path d="M236 96 V52 H300 V96" />

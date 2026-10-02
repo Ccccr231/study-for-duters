@@ -42,7 +42,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
       </Link>
 
       <div>
-        <h1 className="text-xl font-medium text-ink">{plan.title}</h1>
+        <h1 className="text-xl font-medium tracking-tight text-ink">{plan.title}</h1>
         {plan.goal && <p className="mt-1 text-sm text-muted">{plan.goal}</p>}
         <p className="mt-1 text-xs text-muted">
           {doneCount} / {plan.tasks.length} 已完成
@@ -58,7 +58,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
           name="title"
           required
           placeholder="加一个任务"
-          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
         <button
           type="submit"

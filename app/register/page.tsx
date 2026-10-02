@@ -20,7 +20,7 @@ export default async function RegisterPage({ searchParams }: PageProps<"/registe
       <div className="bg-dut-mist px-6 pt-10 pb-2">
         <div className="mx-auto flex w-full max-w-md flex-col items-center gap-2">
           <MainBuildingSilhouette className="h-20 w-auto" />
-          <h1 className="text-xl font-medium text-dut-deep">加入 Study for DUTERS</h1>
+          <h1 className="text-xl font-medium tracking-tight text-dut-deep">加入 Study for DUTERS</h1>
           <p className="text-sm text-muted">先把第一个 25 分钟跑起来</p>
         </div>
       </div>
@@ -30,7 +30,8 @@ export default async function RegisterPage({ searchParams }: PageProps<"/registe
         <AuthForm mode="register" next={target} />
         <p className="mt-6 text-center text-sm text-muted">
           已经有账号？
-          <Link href="/login" className="ml-1 text-dut">
+          {/* 行内 <a> 上 transform 不生效，必须配 inline-block 才有按压反馈 */}
+          <Link href="/login" className="tap ml-1 inline-block text-dut">
             去登录
           </Link>
         </p>

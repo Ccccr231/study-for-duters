@@ -99,7 +99,7 @@ export function ChatPanel() {
 
   if (!ready) {
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-5 py-10">
+      <div className="panel-in mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-5 py-10">
         <Magnolia className="h-12 w-12" />
         <p className="text-center text-[15px] text-ink">连小理还没接上模型</p>
         <p className="text-center text-sm text-muted">
@@ -107,7 +107,7 @@ export function ChatPanel() {
         </p>
         <Link
           href="/settings/model"
-          className="flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-[15px] font-medium text-white"
+          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-[15px] font-medium text-white"
         >
           去设置模型
         </Link>
@@ -151,7 +151,7 @@ export function ChatPanel() {
       </div>
 
       {error && (
-        <p role="status" className="text-sm text-red-600">
+        <p role="status" className="panel-in text-sm text-red-600">
           {error}
         </p>
       )}

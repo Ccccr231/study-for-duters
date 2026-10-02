@@ -20,7 +20,7 @@ export default function GlobalError({
       <p className="text-sm text-muted">页面渲染失败了，你的数据没有受影响。</p>
       <button
         onClick={reset}
-        className="flex h-10 items-center rounded-lg bg-dut px-5 text-sm font-medium text-white"
+        className="press flex h-10 items-center rounded-lg bg-dut px-5 text-sm font-medium text-white"
       >
         重试
       </button>

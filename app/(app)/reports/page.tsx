@@ -75,21 +75,21 @@ export default async function ReportsPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
       <div>
-        <h1 className="text-xl font-medium text-ink">学习报告</h1>
+        <h1 className="text-xl font-medium tracking-tight text-ink">学习报告</h1>
         <p className="mt-1 text-xs text-muted">{formatChineseDate(today)}</p>
       </div>
 
       <section className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium text-dut-deep">{metrics.focusMinutesToday}</p>
+          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">{metrics.focusMinutesToday}</p>
           <p className="text-xs text-muted">今日专注（分钟 · {metrics.pomodorosToday} 个番茄）</p>
         </div>
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium text-dut-deep">{metrics.focusMinutes7d}</p>
+          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">{metrics.focusMinutes7d}</p>
           <p className="text-xs text-muted">近 7 天专注（分钟）</p>
         </div>
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium text-dut-deep">
+          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">
             {metrics.completionRate7d === null
               ? "—"
               : `${metrics.doneTasks7d}/${metrics.dueTasks7d}`}
@@ -97,7 +97,7 @@ export default async function ReportsPage() {
           <p className="text-xs text-muted">近 7 天到期任务完成</p>
         </div>
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium text-dut-deep">{metrics.streakDays}</p>
+          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">{metrics.streakDays}</p>
           <p className="text-xs text-muted">连续打卡（天）</p>
         </div>
       </section>

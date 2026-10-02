@@ -70,15 +70,17 @@ export function ReportPanel({ date, hasReport }: { date: string; hasReport: bool
   if (ready === null) return null;
 
   if (!ready) {
+    // 配置要等挂载后从 localStorage 读，所以这块是"后出现"的：
+    // 加 panel-in 让它浮起，而不是凭空闪出来。
     return (
-      <section className="rounded-xl bg-white p-4 ring-1 ring-line">
+      <section className="panel-in rounded-xl bg-white p-4 ring-1 ring-line">
         <p className="text-sm text-ink">AI 总结还没接上模型</p>
         <p className="mt-1 text-xs text-muted">
           上面的数据卡片不需要模型就能看；填好 Base URL / API Key / 模型名后，连小理才能帮你写总结。
         </p>
         <Link
           href="/settings/model"
-          className="mt-3 inline-flex h-9 items-center rounded-lg bg-dut px-4 text-sm font-medium text-white"
+          className="tap mt-3 inline-flex h-9 items-center rounded-lg bg-dut px-4 text-sm font-medium text-white"
         >
           去设置模型
         </Link>
@@ -93,7 +95,7 @@ export function ReportPanel({ date, hasReport }: { date: string; hasReport: bool
         <button
           onClick={() => void generate()}
           disabled={generating}
-          className="h-9 rounded-lg bg-dut px-4 text-sm font-medium text-white disabled:opacity-50"
+          className="tap h-9 rounded-lg bg-dut px-4 text-sm font-medium text-white disabled:opacity-50"
         >
           {generating ? "生成中…" : hasReport ? "重新生成" : "生成总结"}
         </button>
@@ -110,7 +112,7 @@ export function ReportPanel({ date, hasReport }: { date: string; hasReport: bool
           点「生成总结」，连小理会基于上面的真实数据写一段 200 字内的复盘和明日建议。
         </p>
       )}
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p role="status" className="panel-in mt-2 text-sm text-red-600">{error}</p>}
     </section>
   );
 }

@@ -46,6 +46,24 @@ const browser = await chromium.launch({ executablePath: CHROME, headless: true }
 
 let count = 0;
 try {
+  // 公开页必须用**未登录**上下文拍：/ 在已登录时会 redirect 到 /today，否则拍到的是今日页
+  const pubCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const pubPage = await pubCtx.newPage();
+  pubPage.setDefaultTimeout(60000);
+  for (const vp of VIEWPORTS) {
+    await pubPage.setViewportSize({ width: vp.width, height: vp.height });
+    for (const path of PUBLIC) {
+      await pubPage.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
+      await pubPage.waitForTimeout(600); // 让入场动效走完
+      await pubPage.screenshot({
+        path: `${OUT}${vp.name}${path.replace(/\//g, "-") || "-root"}.png`,
+        fullPage: true,
+      });
+      count++;
+    }
+  }
+  await pubCtx.close();
+
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
   const page = await ctx.newPage();
   page.setDefaultTimeout(60000);
@@ -92,10 +110,10 @@ try {
   for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    for (const path of [...PUBLIC, ...PRIVATE]) {
+    for (const path of PRIVATE) {
       await page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
-      await page.waitForTimeout(500); // 让入场动效走完
-      const name = `${vp.name}${path.replace(/\//g, "-") || "-root"}.png`;
+      await page.waitForTimeout(600); // 让入场动效走完
+      const name = `${vp.name}${path.replace(/\//g, "-")}.png`;
       await page.screenshot({ path: `${OUT}${name}`, fullPage: true });
       count++;
     }
