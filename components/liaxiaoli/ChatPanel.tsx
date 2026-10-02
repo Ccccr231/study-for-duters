@@ -99,7 +99,7 @@ export function ChatPanel() {
 
   if (!ready) {
     return (
-      <div className="panel-in mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-5 py-10">
+      <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
         <Magnolia className="h-12 w-12" />
         <p className="text-center text-[15px] text-ink">连小理还没接上模型</p>
         <p className="text-center text-sm text-muted">
@@ -116,7 +116,7 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-5 py-5">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-4 px-5 py-5">
       {messages.length === 0 && (
         <div className="rounded-xl bg-white p-4 text-[15px] text-ink ring-1 ring-line">
           <span className="mr-1 font-medium text-dut">连小理：</span>

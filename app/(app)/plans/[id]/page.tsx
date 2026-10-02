@@ -36,7 +36,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
   const doneCount = plan.tasks.filter((t) => t.done).length;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <Link href="/plans" className="text-sm text-muted">
         ← 返回
       </Link>

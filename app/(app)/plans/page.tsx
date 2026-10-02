@@ -23,7 +23,7 @@ export default async function PlansPage() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <h1 className="text-xl font-medium tracking-tight text-ink">学习计划</h1>
 
       <form

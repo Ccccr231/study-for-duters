@@ -141,7 +141,7 @@ export function KnowledgePanel() {
     // 配置要等挂载后从 localStorage 读，所以这块是"后出现"的：
     // 加 panel-in 让它浮起，而不是凭空闪出来。
     return (
-      <div className="panel-in mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-5 py-10">
+      <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
         <Magnolia className="h-12 w-12" />
         <p className="text-[15px] text-ink">先接上模型才能建知识库</p>
         <Link
@@ -155,7 +155,7 @@ export function KnowledgePanel() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <section className="flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-line">
         <h2 className="text-sm font-medium text-ink">上传资料（Markdown）</h2>
         <input

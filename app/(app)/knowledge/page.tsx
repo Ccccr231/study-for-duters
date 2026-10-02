@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "知识库" };
 
 export default function KnowledgePage() {
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl sm:max-w-3xl">
       <div className="px-5 pt-5">
         <h1 className="text-xl font-medium tracking-tight text-ink">知识库</h1>
         <p className="mt-0.5 text-xs text-muted">

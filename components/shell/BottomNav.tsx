@@ -16,7 +16,7 @@ export function BottomNav() {
 
   return (
     <nav className="sticky bottom-0 z-10 border-t border-line bg-white/95 backdrop-blur">
-      <ul className="mx-auto flex w-full max-w-2xl">
+      <ul className="mx-auto flex w-full max-w-2xl sm:max-w-3xl">
         {TABS.map((tab) => {
           const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           return (

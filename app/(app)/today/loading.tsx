@@ -4,7 +4,7 @@ export default function TodayLoading() {
   return (
     <div className="flex flex-col pb-8" aria-hidden="true">
       <section className="bg-dut px-5 pt-6 text-white">
-        <div className="mx-auto w-full max-w-2xl">
+        <div className="mx-auto w-full max-w-2xl sm:max-w-3xl">
           <div className="h-3 w-32 rounded skeleton-light" />
           <div className="mt-3 h-7 w-56 rounded skeleton-light" />
           <div className="mt-7 flex gap-7 pb-7">
@@ -15,7 +15,7 @@ export default function TodayLoading() {
         </div>
       </section>
 
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-5 pt-6">
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-4 px-5 pt-6">
         <div className="h-20 skeleton rounded-xl" />
         <div className="h-32 skeleton rounded-xl" />
         <div className="h-12 skeleton rounded-xl" />

@@ -44,7 +44,7 @@ export default async function TodayPage() {
   return (
     <div className="flex flex-col pb-8">
       <section className="bg-dut px-5 pt-6 text-white">
-        <div className="mx-auto w-full max-w-2xl">
+        <div className="mx-auto w-full max-w-2xl sm:max-w-3xl">
           <p className="text-xs tracking-wide text-white/70">{formatChineseDate(new Date())}</p>
           <h1 className="mt-2 text-[26px] leading-tight font-medium tracking-tight">
             {user.name ? `${user.name}，今天` : "今天"}先做点什么？
@@ -76,7 +76,7 @@ export default async function TodayPage() {
       </section>
       <WaveDivider className="h-10 w-full" />
 
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-5">
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-4 px-5">
         {/* 打卡 */}
         <section className="rounded-xl bg-white p-4 ring-1 ring-line">
           <div className="flex items-center justify-between gap-3">

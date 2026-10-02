@@ -28,7 +28,7 @@ export default async function Home() {
           tone="onBlue"
           className="pointer-events-none absolute inset-x-0 -bottom-6 hidden h-28 w-full opacity-20 sm:block"
         />
-        <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center gap-3 text-center sm:items-start sm:gap-4 sm:text-left">
+        <div className="relative mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-3 text-center sm:items-start sm:gap-4 sm:text-left">
           <MainBuildingSilhouette tone="onBlue" className="h-20 w-auto opacity-80 sm:hidden" />
           {/* 大字号要负字距（字越大越显松）；这是拉丁字母标题，收一点就够。
               中文副标题用 text-balance，避免在「复 / 盘」这种字中间断行。 */}
@@ -42,7 +42,7 @@ export default async function Home() {
       </section>
       <WaveDivider className="h-12 w-full sm:h-14" />
 
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-8 px-6 pt-8 pb-10 sm:pt-10">
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-8 px-6 pt-8 pb-10 sm:pt-10">
         {/* 四张卡在窄屏竖排、宽屏 2×2：桌面端把纵向长度压掉一半，
             视觉上也从"一条清单"变成"一块版面"。 */}
         <ul className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">

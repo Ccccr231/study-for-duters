@@ -24,7 +24,7 @@ export default async function CheckInPage() {
   const current = computeStreak(days, today.toISOString().slice(0, 10));
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <h1 className="text-xl font-medium tracking-tight text-ink">打卡</h1>
 
       <section className="rounded-xl bg-white p-4 ring-1 ring-line">

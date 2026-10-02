@@ -10,28 +10,33 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="sticky top-0 z-10 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4">
-          <Link href="/today" className="flex items-center gap-2">
+        {/* 内容宽度：手机全宽、桌面 768px。此前固定 672px，
+            在 1280px 屏上左右各留一条空带，视觉上像被夹住。 */}
+        <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4 sm:max-w-3xl">
+          <Link href="/today" className="tap flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-dut text-xs text-white">
               连
             </span>
             <span className="text-sm font-medium text-dut-deep">连小理</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/knowledge" className="text-sm text-muted">
+            <Link href="/knowledge" className="tap text-sm text-muted transition-colors duration-150 hover:text-ink">
               资料
             </Link>
-            <Link href="/reports" className="text-sm text-muted">
+            <Link href="/reports" className="tap text-sm text-muted transition-colors duration-150 hover:text-ink">
               报告
             </Link>
-            <Link href="/settings/model" className="text-sm text-muted">
+            <Link href="/settings/model" className="tap text-sm text-muted transition-colors duration-150 hover:text-ink">
               设置
             </Link>
             <span className="hidden text-sm text-muted sm:inline">
               {user.name ?? user.email}
             </span>
             <form action={logoutAction}>
-              <button type="submit" className="text-sm text-muted">
+              <button
+                type="submit"
+                className="tap text-sm text-muted transition-colors duration-150 hover:text-ink"
+              >
                 退出
               </button>
             </form>

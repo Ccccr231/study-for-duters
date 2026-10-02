@@ -3,7 +3,7 @@
 // 用 opacity 脉冲而非位移 shimmer：不触发 layout/paint，低端机也不抖。
 export default function AppLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-5 py-6" aria-hidden="true">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-4 px-5 py-6" aria-hidden="true">
       <div className="h-7 w-28 skeleton rounded-lg" />
       <div className="grid grid-cols-2 gap-3">
         <div className="h-20 skeleton rounded-xl" />
