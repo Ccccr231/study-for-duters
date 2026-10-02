@@ -78,8 +78,10 @@ export default async function Home() {
           </Link>
         </div>
 
-        <p className="text-center text-xs text-muted">
-          面向 DUT 学生的个人开源项目，非官方；LLM 由使用者自行配置，平台不预置任何密钥。
+        <p className="max-w-sm px-2 text-center text-xs leading-relaxed text-muted">
+          面向 DUT 学生的个人开源项目，非官方。
+          <br />
+          模型由使用者自行配置，平台不预置任何密钥。
         </p>
       </div>
     </main>

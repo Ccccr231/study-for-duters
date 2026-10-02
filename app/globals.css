@@ -163,6 +163,147 @@ a {
   animation: rise 380ms var(--ease-out) both;
 }
 
+/* ---------------- 首次进入的开场序列 ---------------- */
+
+/* 电影式"西区洛克"推进（dolly zoom）：徽标从小变大、同时脱焦再合焦，
+   像镜头快速推近。位移/缩放/模糊全是合成友好属性，桌面与移动端都不掉帧。 */
+@keyframes intro-zoom {
+  0% {
+    transform: scale(0.3);
+    filter: blur(14px);
+    opacity: 0;
+  }
+  14% {
+    transform: scale(0.36);
+    filter: blur(9px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.6);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* 背景色：深蓝收紧 → 底色铺开 → 淡出露出界面 */
+@keyframes intro-bg {
+  0% {
+    background-color: #062a54;
+    opacity: 1;
+  }
+  68% {
+    background-color: #062a54;
+    opacity: 1;
+  }
+  100% {
+    background-color: var(--dut-blue);
+    opacity: 0;
+  }
+}
+
+/* 光晕：随推进一起扩散，制造纵深 */
+@keyframes intro-glow {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* 校训：在推进过程中淡出，不参与放大 */
+@keyframes intro-motto {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  34% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  74% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 关键：由 layout.tsx 的阻塞脚本在首帧前写 data-intro。
+   服务端首帧一定会渲染这个层，所以必须用 CSS 而不是 React state 来隐藏，
+   否则返回访问者每次加载都会先看到它闪一下。 */
+[data-intro="off"] .intro {
+  display: none;
+}
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* dvh 避开移动端地址栏伸缩导致的跳动 */
+  height: 100dvh;
+  background-color: var(--dut-blue);
+  animation: intro-bg var(--intro-dur, 2400ms) var(--ease-in-out) both;
+}
+
+.intro-glow {
+  position: absolute;
+  width: 70vmin;
+  height: 70vmin;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.28) 0%, transparent 68%);
+  animation: intro-glow var(--intro-dur, 2400ms) var(--ease-out) both;
+}
+
+.intro-emblem {
+  position: relative;
+  animation: intro-zoom var(--intro-dur, 2400ms) var(--ease-in-out) both;
+}
+
+/* 校训在徽标下方，独立淡入淡出（不跟着放大，否则会糊成一片） */
+.intro-motto {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: rgb(255 255 255 / 0.9);
+  font-size: 13px;
+  letter-spacing: 0.42em;
+  /* 每个字之间用 · 分隔后，末字也带间隔符号会右偏，补一点左移 */
+  margin-left: 0.21em;
+  animation: intro-motto var(--intro-dur, 2400ms) var(--ease-in-out) both;
+}
+
+/* 减弱动效：不做推进，只做一次短淡出——序列本来就不该是"必须观看"的内容 */
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    animation: intro-bg 500ms linear both;
+  }
+  .intro-emblem,
+  .intro-glow {
+    animation: none;
+    opacity: 1;
+  }
+  .intro-glow {
+    opacity: 0.35;
+  }
+  .intro-motto {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* ---------------- 无障碍降级 ---------------- */
 
 /* 底部导航的 tab：文字色与激活圆点一起过渡。

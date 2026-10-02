@@ -586,6 +586,7 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 17 | §8.2 ingest「批量写 Chunk（每批 ≤ 50 条）」 | W2 实际是逐条 INSERT；本轮改为 `Prisma.sql` + `Prisma.join` 的批量插入，每批 50 | 200k 字约 250 块，逐条是 250 次数据库往返，Vercel 60s 超时风险；批量后最多 5 次。 |
 | 18 | §8.2 降级「回退 Postgres 全文检索」 | 从整句 ILIKE 改为 **bigram 关键词打分排序**（`lib/rag/keywords.ts`，纯函数 + 6 例单测） | 端到端验收发现：中文自然语言提问整句 ILIKE 几乎必然零命中，降级形同虚设。bigram 打分后「红黑树插入时叔叔是红色怎么办」能稳定命中并标注来源（e2e 实测通过）。 |
 | 19 | §12 建表「在 Neon 控制台执行 migration.sql」 | 提供 `scripts/apply-migration.mjs`（pg 驱动执行 + 登记 `_prisma_migrations`，幂等） | Prisma CLI 的 schema-engine 在本机连不上 Neon（子进程参数转义/冷启动；`channel_binding=require` 也不支持，连接串里要去掉）。CLI 能用的环境仍首选 `migrate deploy`。 |
+| 20 | §6.3 合规「不使用官方校徽作为产品 Logo」 | **已按项目所有者明确要求改为使用官方校徽**：首次进入的开场序列（`components/dut/Emblem.tsx` + `public/dut-emblem.png`）使用官方校徽；其余装饰（海浪 / 玉兰 / 主楼剪影）仍为自绘。站内口径保持「面向 DUT 学生的个人/开源项目，非官方」。 | 所有者 2026-10-02 明确指示「直接使用官方校徽」，本条约定被显式覆盖。**遗留风险（未消除）**：校徽与校名标准字受学校 VI 管理办法约束，以经营为目的使用需申请许可；该风险已随决定转移给所有者。如需回退，把 `EMBLEM_SRC` 换成自绘资源即可，无需改其它代码。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 
@@ -594,4 +595,5 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 其余：
 
 - [ ] 官方大工蓝 RGB/HEX 能否拿到（拿不到就用 6.1 的近似值，后续替换）
+- [x] 官方校徽：2026-10-02 所有者指示直接使用（见 §14 #20）；资产在 `public/dut-emblem.png`
 - [ ] 是否开源（影响是否引入 GPL / SSPL 依赖、是否加 LICENSE）。**只要依赖清单守住 §11 的「安全清单」（MIT / Apache-2.0 / PostgreSQL License），开源或闭源都不受限。**
