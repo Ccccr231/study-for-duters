@@ -23,13 +23,20 @@ export function BottomNav() {
             <li key={tab.href} className="flex-1">
               <Link
                 href={tab.href}
-                className={`flex h-14 items-center justify-center text-sm ${
+                aria-current={active ? "page" : undefined}
+                className={`tap nav-tab flex h-14 items-center justify-center text-sm ${
                   active ? "text-dut font-medium" : "text-muted"
                 }`}
               >
                 <span className="flex flex-col items-center gap-1">
+                  {/* 圆点常驻占位（不用 bg-transparent 切换），只改变透明度与大小：
+                      这样切 tab 时它是"淡入并长大"，而不是凭空出现。 */}
                   <span
-                    className={`h-1 w-1 rounded-full ${active ? "bg-dut" : "bg-transparent"}`}
+                    className="nav-dot h-1 w-1 rounded-full bg-dut"
+                    style={{
+                      opacity: active ? 1 : 0,
+                      transform: active ? "scale(1)" : "scale(0.5)",
+                    }}
                   />
                   {tab.label}
                 </span>

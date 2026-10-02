@@ -57,7 +57,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
       <button
         type="submit"
         disabled={pending}
-        className="h-11 rounded-lg bg-dut text-[15px] font-medium text-white transition-opacity disabled:opacity-60"
+        className="press h-11 rounded-lg bg-dut text-[15px] font-medium text-white transition-opacity duration-150 disabled:opacity-60"
       >
         {pending ? "处理中…" : isLogin ? "登录" : "注册并开始"}
       </button>

@@ -13,6 +13,21 @@
   --dut-muted: #6b7280;
   --dut-line: #e5e7eb;
   --dut-surface: #f7f9fc;
+
+  /* 动效令牌：曲线与时长集中在这里，避免各处手写近似值。
+     内置 ease-out 太弱，做不出"有意图"的手感，所以用更强的自定义曲线。 */
+
+  /* 快出慢收：进场、按压反馈（界面响应） */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* 慢出快收：元素在屏内移动/变形（加减速自然） */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* iOS 抽屉曲线 */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --dur-press: 120ms; /* 按压反馈 */
+  --dur-fast: 160ms; /* 颜色、图标小幅变化 */
+  --dur-base: 200ms; /* 面板入场、状态提示 */
+  --dur-slow: 320ms; /* 一次性强调（打卡点亮） */
 }
 
 @theme inline {
@@ -43,4 +58,188 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------------- 交互反馈 ---------------- */
+
+/* 按压反馈。触屏是主战场，而触屏没有 hover，所以 :active 是唯一能给出的即时确认。
+   不加 transition 时 :active 是瞬变的，看起来像"抖一下"；加上才有重量感。 */
+.press,
+.tap {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+/* 大块行动按钮（开始专注、打卡、登录…）：幅度要更小，大元素缩放太明显会晃眼 */
+.press:active {
+  transform: scale(0.98);
+}
+
+/* 小控件（勾选圆圈、删除、图标按钮）：可以缩得多一点才看得出来 */
+.tap:active {
+  transform: scale(0.94);
+}
+
+/* 面板入场：让"突然出现"变成"从下方浮起"，位移只用 6px，克制。
+   @starting-style 是零 JS 方案，优先于 useEffect + mounted 的老写法。 */
+.panel-in {
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* 加载骨架：只用透明度呼吸，不动位移——不触发 layout/paint，低端机也不抖 */
+.skeleton {
+  background-color: var(--dut-line);
+  animation: skeleton-breathe 1.6s ease-in-out infinite;
+}
+
+/* 深色底（蓝色 hero）上的骨架 */
+.skeleton-light {
+  background-color: rgb(255 255 255 / 0.18);
+  animation: skeleton-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* 打卡点亮：一次性强调，用 keyframes 是对的（只播一次，不需要可中断） */
+@keyframes cell-pop {
+  from {
+    transform: scale(0.72);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.cell-pop {
+  animation: cell-pop var(--dur-slow) var(--ease-out) both;
+}
+
+/* 对话气泡入场。只在挂载时播一次——流式追加文字时 React 会原地更新文本，
+   不会重新挂载节点，所以动画不会每个 chunk 重放。 */
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.bubble-in {
+  animation: bubble-in 180ms var(--ease-out);
+}
+
+/* "正在思考"的省略号：给等待期一点生命迹象，而不是完全静止 */
+@keyframes thinking {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.thinking-dots {
+  animation: thinking 1.1s ease-in-out infinite;
+}
+
+/* 列表交错入场。位移只有 8px，克制；配合内联 animationDelay 形成节奏。
+   用 both 填充，避免延迟期间元素先以最终状态闪一下。 */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.rise {
+  animation: rise 380ms var(--ease-out) both;
+}
+
+/* ---------------- 无障碍降级 ---------------- */
+
+/* 底部导航的 tab：文字色与激活圆点一起过渡。
+   不用 transition-all——只碰颜色/透明度/变换这三类合成友好属性。 */
+.nav-tab {
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+/* 底部导航的激活圆点：常驻占位，只改透明度与缩放，所以是"淡入长大"而非凭空出现 */
+.nav-dot {
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+/* reduced-motion 是"更少更温和"，不是"全无反馈"：
+   保留颜色/透明度（有助于理解状态变化），去掉位移、缩放与循环动画。 */
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .tap {
+    transition: none;
+  }
+  .press:active,
+  .tap:active {
+    transform: none;
+  }
+
+  .panel-in {
+    transition: opacity var(--dur-base) linear;
+
+    @starting-style {
+      opacity: 0;
+      transform: none;
+    }
+  }
+
+  .cell-pop {
+    animation: none;
+  }
+
+  .bubble-in {
+    animation: none;
+  }
+
+  .thinking-dots {
+    animation: none;
+  }
+
+  /* 交错入场属于纯装饰，减弱动效时直接不播，内容本来就都在 */
+  .rise {
+    animation: none;
+  }
+
+  /* 导航：保留颜色/透明度变化（有助于分辨当前位置），去掉圆点的缩放 */
+  .nav-tab {
+    transition: color var(--dur-fast) linear;
+  }
+  .nav-dot {
+    transition: opacity var(--dur-base) linear;
+  }
+
+  /* 加载骨架的呼吸是唯一无限循环动画，降级成静态弱化块 */
+  .skeleton,
+  .skeleton-light {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* 透明降级：backdrop-blur 在低端设备每帧重算模糊，用户主动要求减少透明时直接去掉。
+   这里刻意覆盖 Tailwind 的 .backdrop-blur 工具类，属于有意为之，勿删。 */
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur {
+    backdrop-filter: none;
+    background-color: white;
+  }
 }

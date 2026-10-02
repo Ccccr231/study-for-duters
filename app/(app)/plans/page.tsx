@@ -43,7 +43,7 @@ export default async function PlansPage() {
         />
         <button
           type="submit"
-          className="h-10 rounded-lg bg-dut text-sm font-medium text-white"
+          className="press h-10 rounded-lg bg-dut text-sm font-medium text-white"
         >
           新建计划
         </button>

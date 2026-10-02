@@ -62,7 +62,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
         />
         <button
           type="submit"
-          className="h-11 shrink-0 rounded-lg bg-dut px-4 text-sm font-medium text-white"
+          className="press h-11 shrink-0 rounded-lg bg-dut px-4 text-sm font-medium text-white"
         >
           添加
         </button>
@@ -77,24 +77,30 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
         <ul className="flex flex-col divide-y divide-line rounded-xl bg-white ring-1 ring-line">
           {plan.tasks.map((task) => (
             <li key={task.id} className="flex items-center gap-3 px-4 py-3">
-              <form action={toggleTaskAction} className="flex flex-1 items-center gap-3">
+              <form action={toggleTaskAction} className="flex min-w-0 flex-1 items-center gap-3">
                 <input type="hidden" name="taskId" value={task.id} />
                 <button
                   type="submit"
                   aria-label={task.done ? "标记为未完成" : "标记为完成"}
-                  className={`h-5 w-5 shrink-0 rounded-full border ${
+                  className={`tap h-5 w-5 shrink-0 rounded-full border transition-colors duration-150 ${
                     task.done ? "border-jade bg-jade" : "border-line hover:border-dut"
                   }`}
                 />
                 <span
-                  className={`text-[15px] ${task.done ? "text-muted line-through" : "text-ink"}`}
+                  className={`truncate text-[15px] transition-colors duration-150 ${
+                    task.done ? "text-muted line-through" : "text-ink"
+                  }`}
                 >
                   {task.title}
                 </span>
               </form>
-              <form action={deleteTaskAction}>
+              <form action={deleteTaskAction} className="shrink-0">
                 <input type="hidden" name="taskId" value={task.id} />
-                <button type="submit" className="text-xs text-muted">
+                <button
+                  type="submit"
+                  aria-label="删除任务"
+                  className="tap rounded-md px-1.5 py-1 text-xs text-muted/60 transition-colors duration-150 hover:text-amber"
+                >
                   删除
                 </button>
               </form>
@@ -106,7 +112,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
       {plan.status === "active" && (
         <form action={archivePlanAction}>
           <input type="hidden" name="planId" value={plan.id} />
-          <button type="submit" className="text-sm text-muted underline">
+          <button type="submit" className="tap text-sm text-muted underline underline-offset-4">
             归档这个计划
           </button>
         </form>

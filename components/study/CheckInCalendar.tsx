@@ -49,7 +49,11 @@ export function CheckInCalendar({
               : cell.checked
                 ? "bg-dut"
                 : "bg-dut-mist"
-          } ${cell.isToday ? "ring-1 ring-dut-deep" : ""}`}
+          } ${cell.isToday ? "ring-1 ring-dut-deep" : ""} ${
+            // 只给"今天且已打卡"这一格一次点亮动效：打卡后整页重渲染会自然重放。
+            // 不做 84 格级联——打卡页每天都开，历史格不变，级联会退化成噪声。
+            cell.isToday && cell.checked ? "cell-pop" : ""
+          }`}
         />
       ))}
     </div>

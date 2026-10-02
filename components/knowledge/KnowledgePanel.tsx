@@ -134,13 +134,15 @@ export function KnowledgePanel() {
   if (ready === null) return <p className="px-5 py-6 text-sm text-muted">读取本机配置…</p>;
 
   if (!ready) {
+    // 配置要等挂载后从 localStorage 读，所以这块是"后出现"的：
+    // 加 panel-in 让它浮起，而不是凭空闪出来。
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-5 py-10">
+      <div className="panel-in mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-5 py-10">
         <Magnolia className="h-12 w-12" />
         <p className="text-[15px] text-ink">先接上模型才能建知识库</p>
         <Link
           href="/settings/model"
-          className="flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-[15px] font-medium text-white"
+          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-[15px] font-medium text-white"
         >
           去设置模型
         </Link>
@@ -156,14 +158,14 @@ export function KnowledgePanel() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="资料名，例如「数据结构·树」"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={6}
           placeholder="把 Markdown 粘贴进来，或点下面的按钮选文件"
-          className="rounded-lg border border-line bg-white p-3 text-[15px] outline-none focus:border-dut"
+          className="rounded-lg border border-line bg-white p-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
           ref={fileRef}
@@ -178,20 +180,23 @@ export function KnowledgePanel() {
         <div className="flex gap-3">
           <button
             onClick={() => fileRef.current?.click()}
-            className="h-11 rounded-lg bg-white px-4 text-sm text-dut ring-1 ring-line"
+            className="press h-11 rounded-lg bg-white px-4 text-sm text-dut ring-1 ring-line"
           >
             选择文件
           </button>
           <button
             onClick={() => void ingest()}
             disabled={ingesting || !content.trim()}
-            className="h-11 flex-1 rounded-lg bg-dut text-[15px] font-medium text-white disabled:opacity-50"
+            className="press h-11 flex-1 rounded-lg bg-dut text-[15px] font-medium text-white disabled:opacity-50"
           >
             {ingesting ? "入库中…" : "加入知识库"}
           </button>
         </div>
         {ingestMsg && (
-          <p className={`text-sm ${ingestMsg.ok ? "text-jade" : "text-red-600"}`}>
+          <p
+            role="status"
+            className={`panel-in text-sm ${ingestMsg.ok ? "text-jade" : "text-red-600"}`}
+          >
             {ingestMsg.text}
           </p>
         )}
@@ -210,12 +215,12 @@ export function KnowledgePanel() {
               }
             }}
             placeholder="例如：红黑树的插入怎么调整？"
-            className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+            className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
           />
           <button
             onClick={() => void ask()}
             disabled={asking || !question.trim()}
-            className="h-11 rounded-lg bg-dut px-5 text-[15px] font-medium text-white disabled:opacity-50"
+            className="press h-11 rounded-lg bg-dut px-5 text-[15px] font-medium text-white disabled:opacity-50"
           >
             {asking ? "…" : "问"}
           </button>

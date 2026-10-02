@@ -29,10 +29,13 @@ export default async function Home() {
             ["专注", "25 分钟番茄钟，每次都落到数据里"],
             ["打卡", "连续天数看得见，别断"],
             ["复盘", "连小理每天给你一份学习报告"],
-          ].map(([title, desc]) => (
+          ].map(([title, desc], i) => (
             <li
               key={title}
-              className="flex items-start gap-3 rounded-xl bg-white p-4 ring-1 ring-line"
+              // 交错入场：一张张浮起，比四张同时出现更有节奏。
+              // 延迟只作用在动画上，不阻塞交互（stagger 是装饰性的）。
+              className="rise flex items-start gap-3 rounded-xl bg-white p-4 ring-1 ring-line"
+              style={{ animationDelay: `${40 + i * 60}ms` }}
             >
               <Magnolia className="h-8 w-8 shrink-0" />
               <div>
@@ -46,13 +49,13 @@ export default async function Home() {
         <div className="flex w-full gap-3">
           <Link
             href="/register"
-            className="flex h-12 flex-1 items-center justify-center rounded-xl bg-dut text-[15px] font-medium text-white"
+            className="press flex h-12 flex-1 items-center justify-center rounded-xl bg-dut text-[15px] font-medium text-white"
           >
             开始使用
           </Link>
           <Link
             href="/login"
-            className="flex h-12 flex-1 items-center justify-center rounded-xl bg-white text-[15px] text-dut ring-1 ring-line"
+            className="press flex h-12 flex-1 items-center justify-center rounded-xl bg-white text-[15px] text-dut ring-1 ring-line"
           >
             登录
           </Link>

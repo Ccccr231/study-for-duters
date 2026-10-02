@@ -30,14 +30,16 @@ export default async function CheckInPage() {
       <section className="rounded-xl bg-white p-4 ring-1 ring-line">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-medium text-dut-deep">{current}</p>
-            <p className="text-xs text-muted">当前连续天数</p>
+            <p className="text-[28px] leading-none font-medium tracking-tight tabular-nums text-dut-deep">
+              {current}
+            </p>
+            <p className="mt-1.5 text-[11px] tracking-wide text-muted">当前连续天数</p>
           </div>
           <form action={checkInAction}>
             <button
               type="submit"
               disabled={checkedToday}
-              className="h-10 rounded-lg bg-dut px-5 text-sm font-medium text-white disabled:bg-line disabled:text-muted"
+              className="press h-10 rounded-lg bg-dut px-5 text-sm font-medium text-white disabled:bg-line disabled:text-muted"
             >
               {checkedToday ? "今天已打卡" : "打卡"}
             </button>

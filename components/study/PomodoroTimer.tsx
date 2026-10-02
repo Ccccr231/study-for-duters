@@ -112,14 +112,20 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
             strokeLinecap="round"
             strokeDasharray={C}
             strokeDashoffset={C * (1 - Math.max(0, Math.min(1, progress)))}
-            style={{ transition: "stroke-dashoffset 0.3s linear" }}
+            // 计时推进是匀速运动，用 linear 正确；但"放弃/重置"是状态跳变，
+            // 用同一条 linear 会让圆环像时间倒流，所以两种场景分开给缓动。
+            style={{
+              transition: running
+                ? "stroke-dashoffset 200ms linear"
+                : "stroke-dashoffset 200ms cubic-bezier(0.23, 1, 0.32, 1)",
+            }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-4xl font-medium tabular-nums text-dut-deep">
+          <p className="text-[44px] leading-none font-medium tracking-tight tabular-nums text-dut-deep">
             {mm}:{ss}
           </p>
-          <p className="mt-1 text-xs text-muted">
+          <p className="mt-2 text-xs tracking-wide text-muted">
             {running ? "专注中" : started ? "已暂停" : "准备开始"}
           </p>
         </div>
@@ -151,7 +157,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
                   setMinutes(m);
                   setRemaining(m * 60);
                 }}
-                className={`h-10 rounded-lg px-4 text-sm ring-1 ${
+                className={`press h-10 rounded-lg px-4 text-sm ring-1 transition-colors duration-150 ${
                   minutes === m
                     ? "bg-dut text-white ring-dut"
                     : "bg-white text-muted ring-line"
@@ -166,7 +172,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
         {!running && !started && (
           <button
             onClick={start}
-            className="h-10 rounded-lg bg-dut px-6 text-sm font-medium text-white"
+            className="press h-10 rounded-lg bg-dut px-6 text-sm font-medium text-white"
           >
             开始
           </button>
@@ -175,14 +181,14 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
           <>
             <button
               onClick={resume}
-              className="h-10 rounded-lg bg-dut px-6 text-sm font-medium text-white"
+              className="press h-10 rounded-lg bg-dut px-6 text-sm font-medium text-white"
             >
               继续
             </button>
             <button
               onClick={() => void finish(false)}
               disabled={saving}
-              className="h-10 rounded-lg bg-white px-4 text-sm text-muted ring-1 ring-line"
+              className="press h-10 rounded-lg bg-white px-4 text-sm text-muted ring-1 ring-line transition-colors duration-150 hover:text-ink disabled:opacity-50"
             >
               结束并记录
             </button>
@@ -191,7 +197,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
         {running && (
           <button
             onClick={pause}
-            className="h-10 rounded-lg bg-white px-6 text-sm text-ink ring-1 ring-line"
+            className="press h-10 rounded-lg bg-white px-6 text-sm text-ink ring-1 ring-line transition-colors duration-150 hover:bg-surface"
           >
             暂停
           </button>
@@ -200,14 +206,18 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
           <button
             onClick={reset}
             disabled={saving}
-            className="h-10 rounded-lg px-4 text-sm text-muted disabled:opacity-50"
+            className="press h-10 rounded-lg px-4 text-sm text-muted disabled:opacity-50"
           >
             放弃
           </button>
         )}
       </div>
 
-      {saving && <p className="text-xs text-muted">正在记录…</p>}
+      {saving && (
+        <p role="status" className="text-xs text-muted">
+          正在记录…
+        </p>
+      )}
     </div>
   );
 }

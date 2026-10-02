@@ -17,6 +17,9 @@ export function ChatPanel() {
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // 是否"贴底"。流式期间每个 chunk 都会重跑滚动，若用户主动上滑看历史，
+  // 还把他拽回底部会很烦人——所以只在贴底时跟随。
+  const atBottomRef = useRef(true);
 
   useEffect(() => {
     const c = loadLlmConfig();
@@ -27,8 +30,23 @@ export function ChatPanel() {
     setReady(hasLlmConfig(c));
   }, []);
 
+  // 记录用户是否还在底部（留 120px 容差，接近底部就算贴底）
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const onScroll = () => {
+      const el = document.scrollingElement;
+      if (!el) return;
+      atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!atBottomRef.current) return;
+    // 尊重用户的减弱动效设置：直接跳到底，不做平滑滚动
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    bottomRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
   }, [messages]);
 
   async function send() {
@@ -113,19 +131,30 @@ export function ChatPanel() {
             className={`max-w-[85%] rounded-xl px-4 py-3 text-[15px] whitespace-pre-wrap ${
               m.role === "user"
                 ? "self-end bg-dut text-white"
-                : "self-start bg-white text-ink ring-1 ring-line"
+                : "bubble-in self-start bg-white text-ink ring-1 ring-line"
             }`}
           >
             {m.role === "assistant" && (
               <span className="mr-1 font-medium text-dut">连小理：</span>
             )}
-            {m.content || (streaming ? "…" : "")}
+            {m.content ||
+              (streaming ? (
+                <span className="thinking-dots text-muted" aria-label="连小理正在思考">
+                  …
+                </span>
+              ) : (
+                ""
+              ))}
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p role="status" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
       <div className="sticky bottom-20 flex gap-2 bg-surface pt-2">
         <input
@@ -138,12 +167,13 @@ export function ChatPanel() {
             }
           }}
           placeholder="问点什么，回车发送"
-          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none focus:border-dut"
+          aria-label="给连小理发消息"
+          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
         />
         <button
           onClick={() => void send()}
           disabled={streaming || !input.trim()}
-          className="h-11 rounded-lg bg-dut px-5 text-[15px] font-medium text-white disabled:opacity-50"
+          className="press h-11 rounded-lg bg-dut px-5 text-[15px] font-medium text-white disabled:opacity-50"
         >
           {streaming ? "…" : "发送"}
         </button>
