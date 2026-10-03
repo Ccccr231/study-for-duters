@@ -56,7 +56,7 @@ MVP 的核心叙事（演示时按这个顺序讲）：
 
 **RAG 的 MVP 边界（2026-09-28 修订）**
 
-MVP **只支持 `.md`**，PDF / DOCX 推迟到 v1.1。
+MVP 曾**只支持 `.md`**（PDF / DOCX 推迟到 v1.1）；**2026-10-03 已扩展为 PDF / DOCX / PPTX / XLSX**，走浏览器端解析，见 §14 #22。以下原始理由保留作决策记录：
 
 理由：`pdf-parse` 在 Vercel 免费层（函数 60s 超时）解析大文件容易超时，而免费层没有后台任务可以兜底——这是本项目最容易卡死的地方。Markdown 解析成本为零、体积小、瞬时完成，先把「传了资料就能问」这条路跑通，再扩格式。
 
@@ -588,6 +588,7 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 19 | §12 建表「在 Neon 控制台执行 migration.sql」 | 提供 `scripts/apply-migration.mjs`（pg 驱动执行 + 登记 `_prisma_migrations`，幂等） | Prisma CLI 的 schema-engine 在本机连不上 Neon（子进程参数转义/冷启动；`channel_binding=require` 也不支持，连接串里要去掉）。CLI 能用的环境仍首选 `migrate deploy`。 |
 | 20 | §6.3 合规「不使用官方校徽作为产品 Logo」 | **已按项目所有者明确要求改为使用官方校徽**：首次进入的开场序列（`components/dut/Emblem.tsx` + `public/dut-emblem.png`）使用官方校徽；其余装饰（海浪 / 玉兰 / 主楼剪影）仍为自绘。站内口径保持「面向 DUT 学生的个人/开源项目，非官方」。 | 所有者 2026-10-02 明确指示「直接使用官方校徽」，本条约定被显式覆盖。**遗留风险（未消除）**：校徽与校名标准字受学校 VI 管理办法约束，以经营为目的使用需申请许可；该风险已随决定转移给所有者。如需回退，把 `EMBLEM_SRC` 换成自绘资源即可，无需改其它代码。 |
 | 21 | §6.3 合规「产品自绘一个标识……与学校官方标识保持距离」 | **装饰母题改为所有者提供的水彩画稿**：玉兰（`public/dut-magnolia.png`）与主楼（`public/dut-building.png`）取自一幅水彩画；海浪仍自绘。组件 `MagnoliaArt` / `BuildingArt` 采用「图片优先 + 缺图回退自绘」，缺图不破图。 | 所有者 2026-10-03 决定「使用公开可见的官方或二创素材，直接用了」（见 HANDOFF 对话）。**版权归原作者**，授权责任由所有者承担；与 §6.3 原约定冲突，故本条覆盖之。技术注意：素材为米色纸底水彩，按「与纸底色彩距离 → alpha」抠图，**只适合浅色底**；深蓝底上必须用 `.ink-on-blue` 滤镜提白，否则发灰且露出矩形底。回退方式：把两个组件里的 `USE_ART` 置为 `false`。 |
+| 22 | §2 RAG 知识库「**只收 .md**」，PDF / DOCX 推迟到 v1.1；§3 依赖清单等待装 `pdf-parse` / `mammoth` | **已支持 PDF / DOCX / PPTX / XLSX**：在**浏览器端**解析成纯文本后交给服务端分块入库（`lib/rag/extract.ts`；PDF 用 `pdfjs-dist`、DOCX 用 `mammoth`、PPTX/XLSX 用 `jszip` + XML）。解析库全部动态 import，只在用户选文件时加载。 | 所有者 2026-10-03 指出「普通学生不可能自己把资料转成 Markdown」。原限制的理由是「`pdf-parse` 在 **Vercel 免费层**（函数 60s 超时）解析大文件容易超时」——**项目后来已改自托管，该约束不再成立**，但限制没被拆掉（决策过期）。选**客户端**解析而非服务端：不受函数时限约束、不占服务器内存、能给出真实进度（第 12/40 页）、失败在浏览器里直接可见。因此 §2「必须同时引入 Trigger.dev」的前提（服务端后台任务）也不再需要。**已知限制**：扫描版/拍照版 PDF 没有文字层，取不出文字，已做检测并明确提示（需 OCR，不在本轮范围）。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 

@@ -59,23 +59,37 @@ try {
   console.log(state.hasSoftPrompt ? "  ✅ 提问处有软提示" : "  ⚠️ 未见软提示");
   await page.screenshot({ path: `${OUT}no-model.png`, fullPage: true });
 
-  // 真传一份资料，确认入库走通（降级路径）
-  await page.getByPlaceholder("资料名，例如「数据结构·树」").fill("降级验证资料");
-  await page
-    .getByPlaceholder("把笔记贴进来，或点下面的按钮选文件")
-    .fill("## 红黑树\n\n插入时若叔叔节点为红色，则把父辈染黑、祖父染红，再向上检查。");
+  // 真传一份 PDF，确认「浏览器解析 → 入库」整条链路走通
+  const pdfPath =
+    process.env.PDF_FIXTURE ??
+    "C:/Users/chenr/Documents/deepseek-harness/default-workspace/_pdf_test/ds-notes.pdf";
+  await page.setInputFiles('input[type="file"]', pdfPath);
+  await page.waitForTimeout(6000); // 等解析（含 worker 首次加载）
+  const extracted = await page.evaluate(() => {
+    const ta = document.querySelector("textarea");
+    return { len: ta ? ta.value.length : 0, head: ta ? ta.value.slice(0, 80) : "" };
+  });
+  console.log(`解析结果：提取 ${extracted.len} 字`);
+  console.log(`  开头: ${JSON.stringify(extracted.head)}`);
+  const progressText = await page.evaluate(() => document.body.innerText);
+  const notice = progressText.split("\n").find((l) => /读出|没有找到文字|读不了|失败/.test(l));
+  console.log(`  提示: ${notice ?? "(无)"}`);
+  await page.screenshot({ path: `${OUT}pdf-extracted.png`, fullPage: true });
+
   await page.getByRole("button", { name: "加入知识库" }).click();
-  await page.waitForTimeout(3500);
+  await page.waitForTimeout(4000);
   const afterIngest = await page.evaluate(() => document.body.innerText);
   console.log(
     "入库结果:",
-    /入库|切成|失败|错误/.test(afterIngest)
-      ? afterIngest.split("\n").find((l) => /入库|切成|失败|错误/.test(l))
-      : "(未见提示)",
+    afterIngest.split("\n").find((l) => /已入库|入库失败|失败|错误/.test(l)) ?? "(未见提示)",
   );
   const docs = await db.query(`select count(*)::int c from "Document"`);
   const chunks = await db.query(`select count(*)::int c from "Chunk"`);
+  const sample = await db.query(`select content from "Chunk" order by "order" limit 1`);
   console.log(`  数据库：Document=${docs.rows[0].c} Chunk=${chunks.rows[0].c}`);
+  if (sample.rows[0]) {
+    console.log(`  首块内容前 60 字: ${JSON.stringify(String(sample.rows[0].content).slice(0, 60))}`);
+  }
   await page.screenshot({ path: `${OUT}after-ingest.png`, fullPage: true });
 } catch (e) {
   console.error("中断：", String(e.message).split("\n")[0]);

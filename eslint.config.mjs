@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 第三方压缩产物（pdf.js 的 worker，由 scripts/sync-pdf-worker.mjs 从依赖复制而来），
+    // 不该被 lint，也不该被我们改。
+    "public/pdf.worker.min.mjs",
   ]),
 ]);
 

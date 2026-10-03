@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { hasLlmConfig, loadLlmConfig } from "@/lib/ai/client-config";
-
-// MVP 只收 Markdown：解析成本为零、体积小、能避开 Vercel 免费层 60s 超时。
-// PDF / DOCX 见 PLAN §2「RAG 的 MVP 边界」，v1.1 配合后台任务再扩。
-const ACCEPT = ".md,.markdown,.txt,text/markdown,text/plain";
+import { ACCEPT_ATTR, extractFileText } from "@/lib/rag/extract";
 
 export function KnowledgePanel() {
   // loaded 只表示"配置读过了"，不是"配好了"。
@@ -19,6 +16,7 @@ export function KnowledgePanel() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [ingesting, setIngesting] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [ingestMsg, setIngestMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const [question, setQuestion] = useState("");
@@ -42,9 +40,44 @@ export function KnowledgePanel() {
   }, []);
 
   async function pickFile(file: File) {
-    const text = await file.text();
-    setContent(text);
-    if (!title) setTitle(file.name.replace(/\.(md|markdown|txt)$/i, ""));
+    setExtracting(true);
+    setIngestMsg({ ok: true, text: `正在读取 ${file.name}…` });
+    try {
+      const result = await extractFileText(file, (message) => {
+        setIngestMsg({ ok: true, text: message });
+      });
+
+      // 扫描版 PDF 等"取不到文字"的情况：如实说明，不假装成功
+      if (result.notice) {
+        setIngestMsg({ ok: false, text: result.notice });
+        return;
+      }
+      if (result.text.trim().length < 20) {
+        setIngestMsg({
+          ok: false,
+          text: "这份文件里没读到文字，换一份试试，或直接把内容贴进下面的框里",
+        });
+        return;
+      }
+
+      // 提取结果放进文本框而不是直接入库：让用户能过目、能改，
+      // 也顺便暴露"解析出来到底长什么样"，出问题好判断。
+      setContent(result.text);
+      if (!title) setTitle(result.suggestedTitle);
+      setIngestMsg({
+        ok: true,
+        text: `已从 ${file.name} 读出 ${result.text.length.toLocaleString()} 字${
+          result.units > 1 ? `（${result.units} 页/张）` : ""
+        }，确认无误后点「加入知识库」`,
+      });
+    } catch (err) {
+      setIngestMsg({
+        ok: false,
+        text: err instanceof Error ? err.message : "读取失败，换一份文件试试",
+      });
+    } finally {
+      setExtracting(false);
+    }
   }
 
   async function ingest() {
@@ -156,7 +189,7 @@ export function KnowledgePanel() {
         <div>
           <h2 className="text-sm font-medium text-ink">上传资料</h2>
           <p className="mt-0.5 text-meta text-muted">
-            传进来就能检索，不需要先配模型。
+            支持 PDF、Word、PPT、Excel、Markdown / 纯文本；传进来就能检索，不需要先配模型。
           </p>
         </div>
         <input
@@ -169,29 +202,32 @@ export function KnowledgePanel() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={6}
-          placeholder="把笔记贴进来，或点下面的按钮选文件"
+          placeholder="选一个文件读进来，或直接把内容贴在这里"
           className="rounded-lg border border-line bg-white p-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
           ref={fileRef}
           type="file"
-          accept={ACCEPT}
+          accept={ACCEPT_ATTR}
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void pickFile(f);
+            // 清掉 value，这样连续选同一个文件也能再次触发 onChange
+            e.target.value = "";
           }}
         />
         <div className="flex gap-3">
           <button
             onClick={() => fileRef.current?.click()}
-            className="press h-11 rounded-lg bg-white px-4 text-sm text-dut ring-1 ring-line"
+            disabled={extracting}
+            className="press h-11 rounded-lg bg-white px-4 text-sm text-dut ring-1 ring-line disabled:opacity-60"
           >
-            选择文件
+            {extracting ? "读取中…" : "选择文件"}
           </button>
           <button
             onClick={() => void ingest()}
-            disabled={ingesting || !content.trim()}
+            disabled={ingesting || extracting || !content.trim()}
             className="press h-11 flex-1 rounded-lg bg-dut text-body font-medium text-white disabled:opacity-50"
           >
             {ingesting ? "入库中…" : "加入知识库"}

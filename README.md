@@ -8,7 +8,7 @@
 ## 当前进度
 
 - ✅ **W1**：账号（邮箱+密码）、学习计划与任务、番茄钟、打卡（连续天数 + 12 周热力图）、大工蓝主题、移动端布局
-- ✅ **W2**：连小理对话（流式）、知识库 RAG（`.md` → 分块 → embedding → pgvector，未配 embedding 时降级 bigram 关键词检索）、设置页自填 LLM 配置（默认只存浏览器）
+- ✅ **W2**：连小理对话（流式）、知识库 RAG（PDF / Word / PPT / Excel / `.md` → 浏览器端解析 → 分块 → embedding → pgvector，未配 embedding 时降级 bigram 关键词检索）、设置页自填 LLM 配置（默认只存浏览器）
 - ✅ **W3**：Agent Loop（Observe → Compute → Narrate，指标纯函数 + 33 例单测）、每日学习报告（`/reports`，落库 `Report` 表，建议 action 只展示不自动写库）、上线就绪（安全头 / 404 / 错误页 / 自绘图标 / robots）
 - ⏳ **上线**：Vercel 部署待执行（`DEPLOY.md` 是完整手册）；Vercel Cron 定时报告未做（受「LLM 配置默认只存浏览器」约束，见 PLAN §14 #13）
 - ✅ **验证**：接口级 e2e 17/17、浏览器 UI e2e 11/11（真实 Chrome + 真实 Neon）、单元测试 40/40
@@ -45,6 +45,12 @@ pnpm dev                  # http://localhost:3000
 | `node scripts/apply-migration.mjs` | 手动应用迁移（schema-engine 连不上 Neon 时的 fallback，幂等） |
 | `node scripts/e2e.mjs` | 接口级端到端验收 17 项（需先起生产服务器 + `DEEPSEEK_API_KEY` 环境变量） |
 | `node scripts/ui-e2e.mjs` | 浏览器 UI 验收 11 项（真实 Chrome 走注册/登录/表单/聊天/报告，截图存 `scripts/ui-e2e-shots/`） |
+| `node scripts/kb-check.mjs` | 知识库端到端：真实 PDF 上传 → 解析 → 入库（并验证"没配模型也能用"） |
+| `node scripts/shots.mjs <label>` | 多视口设计对照截图（390×844 / 1280×800） |
+| `node scripts/tablet-shots.mjs` | 中间断点截图（640 / 834 / 1024） |
+| `node scripts/overflow-check.mjs` | 横向溢出巡检（320 / 390px） |
+| `node scripts/route-check.mjs` | 路由入场动画是否触发、`router.refresh()` 是否误重放 |
+| `node scripts/intro-state.mjs` | 开场序列在"新鲜/已看过/只开登录页"三种情形下的行为 |
 
 ## 部署
 
@@ -67,7 +73,7 @@ app/
   (app)/focus         番茄钟（25 / 45 分钟，结束落库）
   (app)/checkin       打卡 + 12 周热力图
   (app)/chat          连小理对话（流式）
-  (app)/knowledge     知识库：上传 .md / 检索问答
+  (app)/knowledge     知识库：上传 PDF / Word / PPT / Excel / .md，检索问答
   (app)/reports       学习报告：指标卡片 + 连小理 AI 总结 + 历史报告
   (app)/settings/model  LLM 配置（Base URL / Key / Model，默认只存浏览器）
   api/chat            连小理流式接口（注入学习数据）
@@ -80,7 +86,10 @@ lib/
   actions/            Server Actions：auth / study
   date.ts             按 UTC 切日的日期工具
   ai/                 配置解析 · provider · 连小理 system prompt · 浏览器侧配置
-  rag/                Markdown 分块（800/120，小段合并）
+  rag/
+    chunk.ts          Markdown 分块（800/120，小段合并）
+    extract.ts        浏览器端解析 PDF / Word / PPT / Excel 为纯文本
+    keywords.ts       bigram 降级检索
   report/             Compute 纯函数（指标）· Narrate 提示词与行协议解析
   streak.ts           连续打卡天数（纯函数）
 components/
