@@ -40,11 +40,13 @@
 
 | 文件 | 作用 |
 |---|---|
-| `deploy/install.sh` | 一键部署脚本：装 Node 22 + pnpm → 拉代码 → 生成 `.env` → 装依赖 → 构建 → 注册 systemd → 放行防火墙 → 自检。**幂等**，可重复跑 |
+| `scripts/pack-deploy.mjs` | **打包给 scp 上传**：`git archive` 当前 HEAD，校验关键文件齐全、不含 `node_modules`/`.next`/`.env`/`.git`，并打印后续命令 |
+| `deploy/install.sh` | 一键部署脚本：装 Node 22 + pnpm → **获取代码（三种来源自动判断）** → 生成 `.env` → 装依赖 → 构建 → 注册 systemd → 放行防火墙 → 自检。**幂等**，可重复跑 |
 | `deploy/SERVER.md` | 选机器、排错、运维、上 HTTPS（Caddy）、备案提醒 |
+| `scripts/check-db.mjs` | 部署自检：连库、查表数、查 pgvector，并提示常见连接串错误 |
+| `scripts/apply-migration.mjs` | 手动应用数据库迁移（幂等），用于 `prisma migrate deploy` 不可用时 |
 | `README.md` | 本地跑起来、目录说明、**12 项实测审计的复跑命令** |
 | `PLAN.md` | 方案与里程碑；`§14` 有合规偏差记录（见 §8） |
-| `scripts/apply-migration.mjs` | 手动应用数据库迁移（幂等），用于 `prisma migrate deploy` 不可用时 |
 | `public/pdf.worker.min.mjs` | PDF 解析所需的 pdf.js worker（已在仓库里，`postinstall` 也会自动同步） |
 | `AGENTS.md` | 给 AI 编码代理的项目规则（**只有改代码时才需要读**，部署用不到） |
 
@@ -52,24 +54,36 @@
 
 ## 3. ⚠️ 三个已知阻塞点（必须先解决）
 
-### 3.1 仓库是私有的，而脚本写死了公开 clone 地址
+### 3.1 代码怎么上服务器 —— **已定：scp 打包上传**
 
-`deploy/install.sh` 第 21 行：
+仓库是 **PRIVATE**，而 `deploy/install.sh` 里的默认 `REPO` 是公开 HTTPS 地址，
+未认证 clone 会失败。**所有者已选定 scp 打包上传**，服务器上不需要任何 GitHub 凭据：
 
-```bash
-REPO="https://github.com/Ccccr231/study-for-duters.git"
+```powershell
+# ── 在所有者 Windows 机器上执行（需要能 ssh 到服务器）
+cd C:\Users\chenr\Documents\deepseek-harness\default-workspace\study-for-duters
+node scripts/pack-deploy.mjs
 ```
 
-仓库当前 **PRIVATE**，未认证 clone 会失败，脚本会停在第 2 步。
-三个阶段各有一个解法（`deploy/SERVER.md §2.1` 也写了）：
+该脚本用 `git archive` 打包当前 HEAD，并**自动校验**：9 个关键文件齐全、
+不含 `node_modules` / `.next` / `.env` / `.git`，工作区不干净时直接拒绝打包。
+输出里会带上完整的后续命令（含服务器公网 IP 占位）。
 
-| 方案 | 做法 | 代价 |
+> ⚠️ 打包前**必须提交所有改动**，否则脚本会拒绝 —— 这是刻意的，
+> 避免打出的包与你以为的版本不一致。
+
+`deploy/install.sh` 已改为**自动识别代码来源**，scp 路线走第一个分支：
+
+| 优先级 | 条件 | 行为 |
 |---|---|---|
-| **A. scp 上传（最稳）** | 本地 → 服务器传 `install.sh`，再把仓库打成 tar 一起传 | 手动，但不需要任何凭据 |
-| **B. 带 token 的 HTTPS** | 服务器上 `git clone https://<用户名>:<PAT>@github.com/...`，或把 `REPO` 改成这个地址 | ⚠️ 会往 shell 历史 / 脚本里留 PAT；用完 `history -c`，PAT 设最短有效期 |
-| **C. 把仓库转 public** | 然后 `curl` 直连下载最省事 | 代码会公开；**需所有者同意**（见 §7） |
+| 1 | `SFD_SOURCE` 或**脚本同级目录**有 `package.json` | 用上传的代码（`rsync -a --delete` 同步到 `/opt/study-for-duters`） |
+| 2 | `/opt/study-for-duters/.git` 存在 | `git fetch && reset --hard origin/main` |
+| 3 | 都没有 | 首次 clone（**私有仓库会失败**，不该走到这里） |
 
-> 推荐 **A**（无凭据流转）或 **C**（最省事）。若用 B，**必须在部署后立即 revoke 那个 PAT**。
+打包产物**不含 `.git`**，所以不会误触发第 2 个分支。
+
+> 另两种方式保留备选，但都需要额外授权，**不要自行采用**：
+> 带 PAT 的 HTTPS clone（会往服务器留凭据）、把仓库转 public（需所有者同意，见 §7）。
 
 ### 3.2 安装脚本**不会建数据库表**
 
@@ -125,37 +139,67 @@ node scripts/check-db.mjs
 
 | # | 需要什么 | 说明 |
 |---|---|---|
-| 1 | **服务器公网 IP + root 登录方式** | SSH 密钥或密码 |
+| 1 | **服务器公网 IP + root 登录方式** | SSH 密钥或密码。scp 上传需要能 ssh 到服务器 |
 | 2 | **Neon `DATABASE_URL`** | Neon 控制台 → Connection string。**必须带 `sslmode=require`，不要带 `channel_binding=require`**（后者在部分 Node 环境下会握手失败） |
 | 3 | **是否已买服务器** | 未买则先按 `SERVER.md §1` 选：**2 核 2G 起**（1G 会 OOM）、Ubuntu 22.04/24.04、免备案选香港/新加坡 |
-| 4 | **仓库访问方式的选择** | §3.1 的 A / B / C 三选一 |
+| 4 | ~~仓库访问方式~~ | ✅ **已定：scp 打包上传**（§3.1），无需额外授权 |
 | 5 | **是否要上 HTTPS（域名）** | 见 §6，需要所有者先买域名 |
 
 ---
 
 ## 5. 部署步骤（照此执行）
 
+### 5.1 在所有者 Windows 机器上：打包
+
+```powershell
+cd C:\Users\chenr\Documents\deepseek-harness\default-workspace\study-for-duters
+node scripts/pack-deploy.mjs
+```
+
+产出 `sfd-<短SHA>.tar.gz`（约 850KB）。脚本会打印完整命令，下面也列一遍。
+
+### 5.2 上传并部署
+
 ```bash
 # ── 0. 服务器上先加 2G swap（2G 内存机器构建时容易 OOM，SERVER.md §5）
 fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
-# ── 1. 把 install.sh 弄到服务器（按 §3.1 选定的方案）
-#    方案 A 示例（在所有者 Windows 机器上执行）：
-#    scp deploy\install.sh root@<公网IP>:/root/
+# ── 1. 上传（在所有者 Windows 机器上执行，把 <IP> 换成公网 IP）
+#     scp "sfd-<短SHA>.tar.gz" root@<IP>:/root/
 
-# ── 2. 跑安装脚本
-sudo bash /root/install.sh
-#    中途会提示粘贴 DATABASE_URL（可留空、事后再改 /opt/study-for-duters/.env）
+# ── 2. 服务器上解包
+mkdir -p /opt/study-for-duters-src
+tar -xzf /root/sfd-<短SHA>.tar.gz -C /opt/study-for-duters-src --strip-components=1
 
-# ── 3. 应用数据库迁移（§3.2，脚本不会做）
+# ── 3. 跑安装脚本
+#     install.sh 会自动发现同级目录的 package.json，把这份代码同步到 /opt/study-for-duters
+sudo bash /opt/study-for-duters-src/deploy/install.sh
+#     中途会提示粘贴 DATABASE_URL（可留空、事后再改 /opt/study-for-duters/.env）
+
+# ── 4. 应用数据库迁移（§3.2，脚本不会做）
 cd /opt/study-for-duters
 pnpm exec prisma migrate deploy        # 失败则 node scripts/apply-migration.mjs
+node scripts/check-db.mjs              # 自检：表数与 pgvector
 
-# ── 4. 重启让应用连上已建好的库
+# ── 5. 重启让应用连上已建好的库
 systemctl restart study-for-duters
 
-# ── 5. 放行安全组（§3.3，在云控制台做，不是命令）
+# ── 6. 放行安全组（§3.3，在云控制台做，不是命令）
+```
+
+> **locale 提醒**：包里有一个中文文件名的文档（`AUDIT-2026-09-28-静态审查.md`）。
+> 服务器 locale 不足时 `tar` 会报一条 `Invalid empty pathname` 警告。
+> 该文件是**纯文档、应用不引用**，忽略即可；
+> 若想彻底避免，解包前 `export LANG=C.UTF-8`。
+
+### 5.3 更新代码（后续）
+
+```bash
+# 本地重新打包上传，然后在服务器上：
+mkdir -p /opt/study-for-duters-src
+tar -xzf /root/sfd-<新短SHA>.tar.gz -C /opt/study-for-duters-src --strip-components=1
+sudo bash /opt/study-for-duters-src/deploy/install.sh   # 幂等，会重新同步+构建+重启
 ```
 
 完成后的运维命令（`SERVER.md §5`）：
@@ -164,10 +208,6 @@ systemctl restart study-for-duters
 systemctl status study-for-duters      # 状态
 systemctl restart study-for-duters     # 重启
 journalctl -u study-for-duters -f      # 实时日志
-
-# 更新代码
-cd /opt/study-for-duters
-git pull && pnpm install --frozen-lockfile && pnpm build && systemctl restart study-for-duters
 ```
 
 ---
@@ -186,7 +226,7 @@ Let's Encrypt 证书，不用手动管）。上 HTTPS 后建议在安全组里**
 
 | # | 事项 | 说明 |
 |---|---|---|
-| 1 | **仓库是否转 public** | §3.1 方案 C 的前提。转了最省事，但代码公开 |
+| 1 | **仓库是否转 public** | **部署已不需要**（scp 方案与仓库可见性无关，见 §3.1）。仍列出是因为它会影响合规暴露面与"是否开源"的产品决策，但不是部署阻塞项 |
 | 2 | **是否购买域名** | 决定要不要做 HTTPS |
 | 3 | **合规风险**（见 §8） | 使用了大工官方校徽与所有者提供的水彩素材，`PLAN §14 #20/#21` 有记录，**风险未消除、责任在所有者**。转 public 会让这两项更显眼 |
 | 4 | **是否需要给同学公开使用** | 公开使用会显著提高 #3 的暴露面，也意味着要真做 HTTPS |
@@ -248,7 +288,7 @@ Let's Encrypt 证书，不用手动管）。上 HTTPS 后建议在安全组里**
 
 | 现象 | 最可能原因 | 处理 |
 |---|---|---|
-| 脚本停在第 2 步 clone | 仓库私有（**§3.1**） | 换方案 A/B/C |
+| 脚本停在第 2 步 clone | 走错了分支：私有仓库无法未认证 clone | 确认是按 §5 的方式跑的（解包后从 `/opt/study-for-duters-src` 执行脚本，脚本会走"已上传代码"分支而不是 clone） |
 | 脚本说成功但外面打不开 | **安全组没放行 3000（§3.3）** | 控制台加入方向规则 |
 | 应用启动即报错、日志有 `relation "User" does not exist` | **迁移没跑（§3.2）** | 跑 `prisma migrate deploy` |
 | 构建失败、日志有 OOM / `Killed` | 内存不足 | 加 2G swap 后重跑（脚本本身也提示了） |
@@ -281,6 +321,8 @@ Let's Encrypt 证书，不用手动管）。上 HTTPS 后建议在安全组里**
 
 1. 访问地址（`http://<公网IP>:3000`）与验收清单 §9 的逐项结果（哪几项过、哪几项不过、不过的报错原文）
 2. `journalctl -u study-for-duters -n 100` 的尾部输出
-3. 若中途改了 `install.sh`（例如把 `REPO` 改成带 token 的地址），**请说明改了什么** ——
+3. `node scripts/check-db.mjs` 的输出（确认表与 pgvector 状态）
+4. 若中途改了 `install.sh` 或其它脚本，**请说明改了什么** ——
    那份改动需要回写到仓库，否则下次部署会踩同一个坑
-4. ⚠️ 若为了 clone 创建了 GitHub PAT，**部署完成后立即 revoke**，并在回传里确认已 revoke
+5. ✅ 本方案**不需要任何 GitHub 凭据**，所以没有 PAT 需要 revoke。
+   若因故临时创建过 token，请在回传里明确说明并确认已 revoke。

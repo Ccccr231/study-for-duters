@@ -41,15 +41,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma client ������� prisma generate ������
+# Prisma Client 生成物（由 prisma generate 产出）
 /lib/generated
 
-# ����ר�ã�����·�� / ���񣩣������
+# 本机专用（含绝对路径 / 凭据），不入库
 .npmrc
-
 
 # UI 验收截图（本地产物）
 scripts/ui-e2e-shots/
 
 # 设计对照截图（本地产物，不入库）
 scripts/design-shots/
+
+# 部署打包产物（由 scripts/pack-deploy.mjs 生成，供 scp 上传，不入库）
+/sfd-*.tar.gz
