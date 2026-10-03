@@ -54,12 +54,18 @@ try {
 
   console.log("切页时的 .route-in 动画：");
   for (const tab of ["计划", "专注", "打卡"]) {
-    const before = await readState();
-    await page.getByRole("link", { name: tab }).click();
+    const beforeUrl = new URL(page.url()).pathname;
+    const t0 = Date.now();
+    await page.getByRole("link", { name: tab }).first().click();
+    // 量出「点击 → URL 变化」的耗时。这个数字有意义：
+    // 为了让无 JS 用户看到内容而移除了 loading.tsx，切页不再有骨架屏兜底，
+    // 必须确认没有慢到能被感知。
+    await page.waitForFunction((prev) => location.pathname !== prev, beforeUrl, { timeout: 15000 });
+    const elapsed = Date.now() - t0;
     await page.waitForTimeout(70);
     const mid = await readState();
     console.log(
-      `  ${tab}: 之前 currentTime=${before.currentTime} → 点击后 running=${mid.running}/${mid.total} name=${mid.name} t=${mid.currentTime}`,
+      `  ${tab}: 切页 ${elapsed}ms；之后 running=${mid.running}/${mid.total} name=${mid.name} t=${mid.currentTime}`,
     );
     await page.screenshot({ path: `${OUT}tab-${tab}-mid.png` });
     await page.waitForTimeout(400);

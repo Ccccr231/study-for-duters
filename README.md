@@ -49,8 +49,34 @@ pnpm dev                  # http://localhost:3000
 | `node scripts/shots.mjs <label>` | 多视口设计对照截图（390×844 / 1280×800） |
 | `node scripts/tablet-shots.mjs` | 中间断点截图（640 / 834 / 1024） |
 | `node scripts/overflow-check.mjs` | 横向溢出巡检（320 / 390px） |
-| `node scripts/route-check.mjs` | 路由入场动画是否触发、`router.refresh()` 是否误重放 |
+| `node scripts/route-check.mjs` | 路由入场动画是否触发、`router.refresh()` 是否误重放、切页耗时 |
 | `node scripts/intro-state.mjs` | 开场序列在"新鲜/已看过/只开登录页"三种情形下的行为 |
+| `node scripts/nojs-check.mjs` | **禁用 JS** 时核心流程是否可用（注册/打卡/建计划真的落库） |
+| `node scripts/skeleton-check.mjs` | 无 JS 时各页面是否只剩骨架屏（这类问题肉眼看不出来） |
+
+## 无 JS 渐进增强（实测契约）
+
+`node scripts/nojs-check.mjs` 用 `javaScriptEnabled: false` 的真实 Chrome 验证，当前 **7/7 通过**：
+
+| 能力 | 无 JS | 说明 |
+|---|---|---|
+| 落地页 / 八页正文 | ✅ | 服务端直出 |
+| 注册 | ✅ | React 19 为 Server Action 注入 `$ACTION_ID_*` 隐藏字段（渐进增强） |
+| 打卡 | ✅ | 同上，真实落库 |
+| 建计划 | ✅ | 同上，真实落库 |
+| 任务勾选 / 删除 | ✅ | `<form action={ServerAction}>` |
+| 连小理对话 / 知识库问答 / 模型设置 / 报告生成 | ❌ | 本来就要调 API 与流式渲染，无 JS 不可用 |
+
+**两条必须守住的约束**（都踩过坑）：
+
+1. **`<html>` 上 `data-intro` 的默认值必须是 `off`**，脚本在首帧前改成 `1` 才播开场。
+   反过来（默认可见、靠脚本隐藏）在禁用 JS 时会让那个全屏层**永久遮住整页**。
+2. **不要给路由组加 `loading.tsx`**。它引入的 Suspense 边界只会发骨架屏，
+   而骨架屏只能靠 JS 替换 —— 加了之后 `/today` `/plans` `/focus` `/checkin` `/reports`
+   五个页面在无 JS 下全部**永久停在加载态**（HTTP 仍是 200、HTML 也不小，肉眼查不出来）。
+   需要加载态时用组件内的局部 `panel-in`/`skeleton`，不要用路由级 `loading.tsx`。
+
+---
 
 ## 部署
 

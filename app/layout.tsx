@@ -36,7 +36,9 @@ document.documentElement.dataset.intro=(!seen&&!m)?'1':'off';
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="zh-CN" className="h-full antialiased">
+    // data-intro 的**默认值是 off**，脚本在首帧前把它改成 "1" 才播开场。
+    // 这样禁用 JS 时开场层保持隐藏（否则那个全屏层会永久遮住整页）。
+    <html lang="zh-CN" className="h-full antialiased" data-intro="off">
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_BOOTSTRAP }} />
       </head>

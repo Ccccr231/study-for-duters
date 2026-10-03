@@ -276,10 +276,16 @@ a {
   }
 }
 
-/* 关键：由 layout.tsx 的阻塞脚本在首帧前写 data-intro。
-   服务端首帧一定会渲染这个层，所以必须用 CSS 而不是 React state 来隐藏，
-   否则返回访问者每次加载都会先看到它闪一下。 */
-[data-intro="off"] .intro {
+/* 开场层的默认状态由 <html data-intro> 决定，而该属性由 layout.tsx 的阻塞脚本写入。
+   **默认值必须是 off**：HTML 上先写 data-intro="off"，脚本在首帧前把它改成 "1"。
+   反过来（默认可见、靠脚本隐藏）会有两个后果：
+   1. 禁用 JS / 脚本被拦时，这个全屏层会**永久遮住整页**（实测过，看到的是蓝色空屏）；
+   2. 返回访问者每次加载会先闪一下。
+
+   同理，`.intro` 上的 `display: none` 必须能压过 `.intro { display: flex }`，
+   所以用属性选择器 + 显式 `!important` 太脏 —— 改为让脚本保证首帧前就写好属性，
+   并在这里对"无属性"的情况一并兜底。 */
+html:not([data-intro="1"]) .intro {
   display: none;
 }
 
