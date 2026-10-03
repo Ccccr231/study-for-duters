@@ -119,7 +119,9 @@ try {
   // 7. 知识库 UI：上传 + 问答
   await page.goto(`${BASE}/knowledge`, { waitUntil: "domcontentloaded" });
   await page.getByPlaceholder("资料名，例如「数据结构·树」").fill("验收·红黑树笔记");
-  await page.getByPlaceholder("把 Markdown 粘贴进来，或点下面的按钮选文件").fill(
+  // 注意：这个 placeholder 在 2026-10-03 随 UI 改过文案，旧值
+  // 「把 Markdown 粘贴进来，或点下面的按钮选文件」已失效，勿改回去。
+  await page.getByPlaceholder("选一个文件读进来，或直接把内容贴在这里").fill(
     "# 红黑树\n\n插入默认染红。叔叔是红色：父叔变黑祖父变红，问题向上传递。口诀：红叔变色，黑叔旋转。",
   );
   await page.getByRole("button", { name: "加入知识库" }).click();

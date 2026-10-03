@@ -50,6 +50,9 @@ next-env.d.ts
 # UI 验收截图（本地产物）
 scripts/ui-e2e-shots/
 
+# 部署验收截图（scripts/accept-e2e.mjs 产出，本地产物）
+scripts/accept-shots/
+
 # 设计对照截图（本地产物，不入库）
 scripts/design-shots/
 
