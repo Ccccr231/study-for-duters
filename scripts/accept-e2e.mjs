@@ -165,6 +165,69 @@ try {
       Number(c.docs) === 1,
     JSON.stringify(c),
   );
+
+  // ── 以下是错误路径与安全边界：部署后最容易暴露 500 的地方，
+  //    单独开 context（空 cookie），不污染主会话。
+  const anon = await browser.newContext();
+  const anonPage = await anon.newPage();
+  anonPage.setDefaultTimeout(60000);
+
+  // 12. 未登录直闯受保护页 → 必须被拦回登录页（而不是渲染出内容或 500）
+  await anonPage.goto(`${BASE}/today`, { waitUntil: "domcontentloaded" });
+  await anonPage.waitForURL("**/login**", { timeout: 25000 });
+  check("未登录访问 /today 被拦回登录页", anonPage.url().includes("/login"), anonPage.url());
+
+  await anonPage.goto(`${BASE}/plans`, { waitUntil: "domcontentloaded" });
+  await anonPage.waitForURL("**/login**", { timeout: 25000 });
+  check("未登录访问 /plans 被拦回登录页", anonPage.url().includes("/login"), anonPage.url());
+
+  // 13. 重复邮箱注册 → 应给出业务提示，而不是 500 / 唯一约束报错
+  await anonPage.goto(`${BASE}/register`, { waitUntil: "domcontentloaded" });
+  await anonPage.getByLabel("邮箱").fill(email);
+  await anonPage.getByLabel("密码").fill(password);
+  await anonPage.getByRole("button", { name: "注册并开始" }).click();
+  await anonPage.getByText(/已经注册过/).waitFor({ timeout: 25000 });
+  check("重复邮箱注册被拒绝并给出提示（非 500）", true);
+
+  // 14. 错误密码 → 提示必须与「邮箱不存在」一致，避免账号枚举
+  await anonPage.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+  await anonPage.getByLabel("邮箱").fill(email);
+  await anonPage.getByLabel("密码").fill("wrong-pass-999");
+  await anonPage.getByRole("button", { name: "登录", exact: true }).click();
+  await anonPage.getByText(/邮箱或密码不对/).waitFor({ timeout: 25000 });
+  check("错误密码被拒绝且提示不区分账号是否存在", true);
+
+  // 15. 邮箱不存在的登录 → 与上一条提示完全相同
+  await anonPage.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+  await anonPage.getByLabel("邮箱").fill(`nobody-${Date.now()}@test.dev`);
+  await anonPage.getByLabel("密码").fill(password);
+  await anonPage.getByRole("button", { name: "登录", exact: true }).click();
+  await anonPage.getByText(/邮箱或密码不对/).waitFor({ timeout: 25000 });
+  check("不存在的邮箱提示与错误密码一致（防账号枚举）", true);
+
+  // 16. 密码过短 → 注册时密码框带 minLength={8}，由 HTML5 原生校验在**提交前**拦住，
+  //     所以不会出现服务端提示文案（服务端另有一道，见 lib/actions/auth.ts）。
+  //     断言「确实被拦 + 没有建出账号」，而不是去找一句不存在的提示。
+  const shortEmail = `short-${Date.now()}@test.dev`;
+  await anonPage.goto(`${BASE}/register`, { waitUntil: "domcontentloaded" });
+  await anonPage.getByLabel("邮箱").fill(shortEmail);
+  await anonPage.getByLabel("密码").fill("123");
+  await anonPage.getByRole("button", { name: "注册并开始" }).click();
+  await anonPage.waitForTimeout(1500);
+  const tooShort = await anonPage
+    .locator('input[type="password"]')
+    .evaluate((el) => el.validity.tooShort === true);
+  const stillOnRegister = anonPage.url().includes("/register");
+  const { rows: leaked } = await db.query(`SELECT count(*)::int AS n FROM "User" WHERE email = $1`, [
+    shortEmail,
+  ]);
+  check(
+    "过短密码在提交前被拦且未建号",
+    tooShort && stillOnRegister && leaked[0].n === 0,
+    `validity.tooShort=${tooShort}，仍在 /register=${stillOnRegister}，建号数=${leaked[0].n}`,
+  );
+
+  await anon.close();
 } catch (err) {
   check("脚本执行未抛异常", false, String(err).split("\n")[0]);
 } finally {
