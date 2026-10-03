@@ -112,7 +112,7 @@ export function ReportPanel({ date, hasReport }: { date: string; hasReport: bool
           点「生成总结」，连小理会基于上面的真实数据写一段 200 字内的复盘和明日建议。
         </p>
       )}
-      {error && <p role="status" className="panel-in mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p role="alert" className="panel-in mt-2 text-sm text-red-600">{error}</p>}
     </section>
   );
 }

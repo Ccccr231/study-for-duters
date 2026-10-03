@@ -300,7 +300,7 @@ export function KnowledgePanel() {
         )}
 
         {askError && (
-          <p role="status" className="panel-in text-sm text-red-600">
+          <p role="alert" className="panel-in text-sm text-red-600">
             {askError}
           </p>
         )}

@@ -27,7 +27,7 @@ export function CheckInCalendar({
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(
       d.getUTCDate(),
     ).padStart(2, "0")}`;
-    return { key, ts, isFuture: ts > end, isToday: ts === end, checked: checked.has(key) };
+    return { key, ts, d, isFuture: ts > end, isToday: ts === end, checked: checked.has(key) };
   });
 
   // 每列（=每周）首格所在月份，用于在顶部标出月份变化。
@@ -45,8 +45,16 @@ export function CheckInCalendar({
   // 只在 一/三/五/日 四行给标签，避免 7 行文字挤在一起
   const ROW_LABELS = ["一", "", "三", "", "五", "", "日"];
 
+  const totalChecked = cells.filter((c) => c.checked).length;
+
   return (
     <div className="w-full">
+      {/* 给读屏一句话总览。84 个格子逐个读会没完没了，
+          所以整张图对读屏是"一个图像 + 一段摘要"，细节靠 aria-label 按需查看。
+          同时这段摘要也让键盘/触屏用户能一眼知道总数。 */}
+      <p className="sr-only">
+        最近 12 周打卡热力图，共打卡 {totalChecked} 天。
+      </p>
       {/* 月份标签：与 12 列网格同构，保证对齐；左侧留出与行标签等宽的空白 */}
       <div className="mb-1 flex gap-1">
         <span className="w-6 shrink-0" aria-hidden="true" />
@@ -87,23 +95,34 @@ export function CheckInCalendar({
             gridAutoFlow: "column",
           }}
         >
-          {cells.map((cell) => (
-            <div
-              key={cell.key}
-              title={cell.key}
-              className={`aspect-square rounded-[3px] ${
-                cell.isFuture
-                  ? "bg-transparent"
-                  : cell.checked
-                    ? "bg-dut"
-                    : "bg-dut-mist"
-              } ${cell.isToday ? "ring-1 ring-dut-deep" : ""} ${
-                // 只给"今天且已打卡"这一格一次点亮动效：打卡后整页重渲染会自然重放。
-                // 不做 84 格级联——打卡页每天都开，历史格不变，级联会退化成噪声。
-                cell.isToday && cell.checked ? "cell-pop" : ""
-              }`}
-            />
-          ))}
+          {cells.map((cell) => {
+            // 读屏原本只会读出裸日期（"2026-09-28"），既不自然也没说状态。
+            // 这里给出人能听懂的标签；未来日期（本周末尾几格）不放进无障碍树，
+            // 否则会读出一堆"还没到"的空格子。
+            const label = `${cell.d.getUTCMonth() + 1} 月 ${cell.d.getUTCDate()} 日${
+              cell.isFuture ? "" : cell.checked ? "，已打卡" : "，未打卡"
+            }${cell.isToday ? "，今天" : ""}`;
+            return (
+              <div
+                key={cell.key}
+                title={cell.key}
+                role={cell.isFuture ? undefined : "img"}
+                aria-label={cell.isFuture ? undefined : label}
+                aria-hidden={cell.isFuture ? true : undefined}
+                className={`aspect-square rounded-[3px] ${
+                  cell.isFuture
+                    ? "bg-transparent"
+                    : cell.checked
+                      ? "bg-dut"
+                      : "bg-dut-mist"
+                } ${cell.isToday ? "ring-1 ring-dut-deep" : ""} ${
+                  // 只给"今天且已打卡"这一格一次点亮动效：打卡后整页重渲染会自然重放。
+                  // 不做 84 格级联——打卡页每天都开，历史格不变，级联会退化成噪声。
+                  cell.isToday && cell.checked ? "cell-pop" : ""
+                }`}
+              />
+            );
+          })}
         </div>
       </div>
     </div>

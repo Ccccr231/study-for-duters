@@ -9,6 +9,17 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const OPENING = "今天想先学什么？我把你的待办和打卡数据都看过了。";
 
+/**
+ * 给读屏播报用的截断。
+ *
+ * 播报整篇回答会让用户被迫听完（live region 无法跳过），
+ * 所以只播开头一段，其余留给用户自己往下读。
+ */
+function truncateForSpeech(text: string, max = 160): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  return flat.length <= max ? flat : `${flat.slice(0, max)}……（其余请往下阅读）`;
+}
+
 export function ChatPanel() {
   const [ready, setReady] = useState<boolean | null>(null);
   const [config, setConfig] = useState<ReturnType<typeof loadLlmConfig>>(null);
@@ -16,6 +27,8 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 只给读屏的播报内容：流式结束后播一次，避免逐个 token 刷屏
+  const [announcement, setAnnouncement] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   // 是否"贴底"。流式期间每个 chunk 都会重跑滚动，若用户主动上滑看历史，
   // 还把他拽回底部会很烦人——所以只在贴底时跟随。
@@ -54,6 +67,7 @@ export function ChatPanel() {
     if (!text || streaming || !config) return;
 
     setError(null);
+    setAnnouncement("");
     setInput("");
     const next: Message[] = [...messages, { role: "user", content: text }];
     setMessages([...next, { role: "assistant", content: "" }]);
@@ -85,6 +99,11 @@ export function ChatPanel() {
         acc += decoder.decode(value, { stream: true });
         setMessages([...next, { role: "assistant", content: acc }]);
       }
+      // 流式结束后**播报一次完整回答**。
+      // 不能给正文加 aria-live：那样每个 token 都会触发一次播报，读屏会被刷屏；
+      // 也不能不播报，否则读屏用户根本不知道回答已经来了。
+      // 折中：正文保持普通节点，另用一个隐藏的 role="status" 在完成时播一次。
+      setAnnouncement(`连小理回答完毕：${truncateForSpeech(acc)}`);
     } catch {
       setError("网络中断，等一下再试");
       setMessages(next);
@@ -124,6 +143,14 @@ export function ChatPanel() {
         </div>
       )}
 
+      {/* 读屏播报区。平时为空，只在关键节点写入一次：
+          - 回答流式结束 → 播一次摘要
+          - 出错 → 见下面的 role="alert"
+          正文本身保持普通节点，不加 aria-live（否则每个 token 都会播报）。 */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </p>
+
       <div className="flex flex-col gap-3">
         {messages.map((m, i) => (
           <div
@@ -151,7 +178,7 @@ export function ChatPanel() {
       </div>
 
       {error && (
-        <p role="status" className="panel-in text-sm text-red-600">
+        <p role="alert" className="panel-in text-sm text-red-600">
           {error}
         </p>
       )}

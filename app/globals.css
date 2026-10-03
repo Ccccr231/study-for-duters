@@ -143,6 +143,21 @@ textarea {
   }
 }
 
+/* 只给屏幕阅读器的文本。
+   Tailwind v4 自带 sr-only，这里显式定义一份是为了把用途写清楚，
+   也避免以后换构建方式时隐式失效。 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* 安全区（iPhone 刘海屏 / Home 指示条）。
    配合 layout.tsx 的 viewportFit: "cover" 才生效。
    只在有安全区的设备上产生位移，普通浏览器 env() 取值为 0。 */

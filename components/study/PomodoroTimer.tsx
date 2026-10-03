@@ -19,6 +19,8 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(DEFAULT_MINUTES * 60);
   const [saving, setSaving] = useState(false);
+  // 只给读屏的播报（定时结束 / 手动结束各播一次）
+  const [announcement, setAnnouncement] = useState("");
   const startedAtRef = useRef<Date | null>(null);
   // 用 ref 而不是 saving state 做重入锁：同一事件循环里连点两次时，
   // state 还没重渲染，两次调用都会读到 saving === false，会重复落库两条记录。
@@ -34,6 +36,9 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
       if (left === 0) {
         clearInterval(timer);
         setEndsAt(null);
+        // 读屏用户看不到"计时归零"这件事，必须用播报代替。
+        // 播报放这里而不是 finish() 里：finish(false)（手动结束）不该说"完成"。
+        setAnnouncement(`${minutes} 分钟专注完成，正在记录。`);
         void finish(true);
       }
     }, 250);
@@ -53,6 +58,8 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
     try {
       await finishPomodoroAction(fd);
       startedAtRef.current = null;
+      // 定时结束那条播报已经说过了，这里只补手动结束的情况
+      if (!completed) setAnnouncement(`已结束并记录本次专注。`);
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -92,6 +99,11 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
 
   return (
     <div className="flex flex-col items-center gap-6">
+      {/* 读屏播报：计时归零与手动结束各播一次。
+          计时数字本身**不加** aria-live——每秒变一次会把读屏刷爆。 */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </p>
       <div className="relative" style={{ width: SIZE, height: SIZE }}>
         <svg width={SIZE} height={SIZE} className="-rotate-90">
           <circle
