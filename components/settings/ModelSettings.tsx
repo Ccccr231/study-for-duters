@@ -76,7 +76,7 @@ export function ModelSettings() {
               value={config.baseUrl}
               onChange={(e) => update("baseUrl", e.target.value)}
               placeholder="https://api.deepseek.com/v1"
-              className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+              className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
             />
           </label>
 
@@ -88,7 +88,7 @@ export function ModelSettings() {
               type="password"
               autoComplete="off"
               placeholder="sk-..."
-              className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+              className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
             />
           </label>
 
@@ -98,7 +98,7 @@ export function ModelSettings() {
               value={config.chatModel}
               onChange={(e) => update("chatModel", e.target.value)}
               placeholder="deepseek-chat"
-              className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+              className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
             />
           </label>
 
@@ -110,21 +110,21 @@ export function ModelSettings() {
               value={config.embedModel}
               onChange={(e) => update("embedModel", e.target.value)}
               placeholder="text-embedding-3-small"
-              className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+              className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
             />
           </label>
 
           <div className="flex gap-3">
             <button
               onClick={save}
-              className="press h-11 flex-1 rounded-lg bg-dut text-[15px] font-medium text-white"
+              className="press h-11 flex-1 rounded-lg bg-dut text-body font-medium text-white"
             >
               保存到本机
             </button>
             <button
               onClick={test}
               disabled={testing || !ready}
-              className="press h-11 rounded-lg bg-white px-5 text-[15px] text-dut ring-1 ring-line disabled:opacity-50"
+              className="press h-11 rounded-lg bg-white px-5 text-body text-dut ring-1 ring-line disabled:opacity-50"
             >
               {testing ? "测试中…" : "测试连接"}
             </button>

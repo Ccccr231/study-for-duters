@@ -122,7 +122,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-[44px] leading-none font-medium tracking-tight tabular-nums text-dut-deep">
+          <p className="text-display leading-none font-medium tracking-tight tabular-nums text-dut-deep">
             {mm}:{ss}
           </p>
           <p className="mt-2 text-xs tracking-wide text-muted">
@@ -136,7 +136,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
           value={taskId}
           onChange={(e) => setTaskId(e.target.value)}
           disabled={started}
-          className="h-11 w-full max-w-xs rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut disabled:opacity-60"
+          className="h-11 w-full max-w-xs rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut disabled:opacity-60"
         >
           <option value="">不关联任务</option>
           {tasks.map((t) => (

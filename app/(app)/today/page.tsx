@@ -46,7 +46,7 @@ export default async function TodayPage() {
       <section className="bg-dut px-5 pt-6 text-white">
         <div className="mx-auto w-full max-w-2xl sm:max-w-3xl">
           <p className="text-xs tracking-wide text-white/70">{formatChineseDate(new Date())}</p>
-          <h1 className="mt-2 text-[26px] leading-tight font-medium tracking-tight">
+          <h1 className="mt-2 text-stat leading-tight font-medium tracking-tight">
             {user.name ? `${user.name}，今天` : "今天"}先做点什么？
           </h1>
           {activePlan && (
@@ -65,10 +65,10 @@ export default async function TodayPage() {
               [streak, "连续打卡（天）"],
             ].map(([value, label]) => (
               <div key={label as string}>
-                <p className="text-[28px] leading-none font-medium tracking-tight tabular-nums">
+                <p className="text-stat leading-none font-medium tracking-tight tabular-nums">
                   {value}
                 </p>
-                <p className="mt-1.5 text-[11px] tracking-wide text-white/70">{label}</p>
+                <p className="mt-1.5 text-meta tracking-wide text-white/70">{label}</p>
               </div>
             ))}
           </div>
@@ -127,7 +127,7 @@ export default async function TodayPage() {
 
         <Link
           href="/focus"
-          className="press flex h-12 items-center justify-center rounded-xl bg-dut text-[15px] font-medium text-white"
+          className="press flex h-12 items-center justify-center rounded-xl bg-dut text-body font-medium text-white"
         >
           开始 25 分钟专注
         </Link>

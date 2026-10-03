@@ -101,13 +101,13 @@ export function ChatPanel() {
     return (
       <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
         <MagnoliaArt className="h-12 w-12" />
-        <p className="text-center text-[15px] text-ink">连小理还没接上模型</p>
+        <p className="text-center text-body text-ink">连小理还没接上模型</p>
         <p className="text-center text-sm text-muted">
           这个平台不预置任何密钥，需要你自己填 Base URL、API Key 和模型名。
         </p>
         <Link
           href="/settings/model"
-          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-[15px] font-medium text-white"
+          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-body font-medium text-white"
         >
           去设置模型
         </Link>
@@ -118,7 +118,7 @@ export function ChatPanel() {
   return (
     <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-4 px-5 py-5">
       {messages.length === 0 && (
-        <div className="rounded-xl bg-white p-4 text-[15px] text-ink ring-1 ring-line">
+        <div className="rounded-xl bg-white p-4 text-body text-ink ring-1 ring-line">
           <span className="mr-1 font-medium text-dut">连小理：</span>
           {OPENING}
         </div>
@@ -128,7 +128,7 @@ export function ChatPanel() {
         {messages.map((m, i) => (
           <div
             key={i}
-            className={`max-w-[85%] rounded-xl px-4 py-3 text-[15px] whitespace-pre-wrap ${
+            className={`max-w-[85%] rounded-xl px-4 py-3 text-body whitespace-pre-wrap ${
               m.role === "user"
                 ? "self-end bg-dut text-white"
                 : "bubble-in self-start bg-white text-ink ring-1 ring-line"
@@ -168,12 +168,12 @@ export function ChatPanel() {
           }}
           placeholder="问点什么，回车发送"
           aria-label="给连小理发消息"
-          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <button
           onClick={() => void send()}
           disabled={streaming || !input.trim()}
-          className="press h-11 rounded-lg bg-dut px-5 text-[15px] font-medium text-white disabled:opacity-50"
+          className="press h-11 rounded-lg bg-dut px-5 text-body font-medium text-white disabled:opacity-50"
         >
           {streaming ? "…" : "发送"}
         </button>

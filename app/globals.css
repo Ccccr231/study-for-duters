@@ -45,6 +45,44 @@
      直接用系统字体栈，中文显示也更好。 */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+
+  /* 字号阶梯。此前是「默认刻度 + 少量任意值」混用，实测 text-sm(14px) 76 次
+     与 text-[15px] 39 次——两个只差 1px 的近似值混在一起，没有统一刻度。
+     这里固定一条阶梯，每个字号对应一个明确角色，并给中文留足行高。
+     字号取整数（中文在奇偶之间观感差异明显，统一到整数更稳）。 */
+  --text-meta: 12px; /* 元数据：时间戳、单位、脚注、标签 */
+  --text-meta--line-height: 1.5;
+  --text-meta--letter-spacing: 0.01em;
+  --text-caption: 13px; /* 辅助说明：卡片描述、状态提示 */
+  --text-caption--line-height: 1.6;
+  --text-body: 16px; /* 正文与条目标题 */
+  --text-body--line-height: 1.65;
+  --text-title: 18px; /* 区块标题（表单标题等） */
+  --text-title--line-height: 1.45;
+  --text-page: 20px; /* 页面主标题 */
+  --text-page--line-height: 1.4;
+  --text-page--letter-spacing: -0.01em;
+  --text-stat: 28px; /* 数字展示：统计值 */
+  --text-stat--line-height: 1.1;
+  --text-stat--letter-spacing: -0.02em;
+  --text-display: 36px; /* 展示级：hero 标题、计时器 */
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.02em;
+}
+
+/* 覆盖 Tailwind 默认的两个字号刻度，把它们纳入同一条阶梯：
+   - text-sm 14px → 13px：中文在 13/14 之间观感几乎无差，但代码里 14 与 16 并存时
+     会出现「只差 1px 的近似值」混用（实测 text-sm 76 次 vs text-[15px] 39 次），
+     统一到 13px 后层级才清晰：13 辅助说明 / 16 正文。
+   - text-xs 12px 保持，补上稍宽的字距（中文小字需要一点呼吸）。
+   注意必须用**非 inline** 的 @theme 块才能覆盖默认值——
+   `@theme inline` 只做变量替换、不会把变量写进产物，因此覆盖不生效。 */
+@theme {
+  --text-xs: 12px;
+  --text-xs--line-height: 1.5;
+  --text-xs--letter-spacing: 0.01em;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.6;
 }
 
 body {

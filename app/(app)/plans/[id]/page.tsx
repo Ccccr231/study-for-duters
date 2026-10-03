@@ -58,7 +58,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
           name="title"
           required
           placeholder="加一个任务"
-          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <button
           type="submit"
@@ -87,7 +87,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
                   }`}
                 />
                 <span
-                  className={`truncate text-[15px] transition-colors duration-150 ${
+                  className={`truncate text-body transition-colors duration-150 ${
                     task.done ? "text-muted line-through" : "text-ink"
                   }`}
                 >

@@ -20,7 +20,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
           <input
             name="name"
             autoComplete="nickname"
-            className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+            className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
           />
         </label>
       )}
@@ -33,7 +33,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
           required
           autoComplete="email"
           placeholder="you@example.com"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
       </label>
 
@@ -46,7 +46,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
           minLength={isLogin ? undefined : 8}
           autoComplete={isLogin ? "current-password" : "new-password"}
           placeholder={isLogin ? "" : "至少 8 位"}
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
       </label>
 
@@ -57,7 +57,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
       <button
         type="submit"
         disabled={pending}
-        className="press h-11 rounded-lg bg-dut text-[15px] font-medium text-white transition-opacity duration-150 disabled:opacity-60"
+        className="press h-11 rounded-lg bg-dut text-body font-medium text-white transition-opacity duration-150 disabled:opacity-60"
       >
         {pending ? "处理中…" : isLogin ? "登录" : "注册并开始"}
       </button>

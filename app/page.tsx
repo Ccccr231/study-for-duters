@@ -47,10 +47,10 @@ export default async function Home() {
           <Emblem className="h-16 w-16 sm:hidden" />
           {/* 大字号要负字距（字越大越显松）；这是拉丁字母标题，收一点就够。
               中文副标题用 text-balance，避免在「复 / 盘」这种字中间断行。 */}
-          <h1 className="text-[28px] leading-tight font-medium tracking-[-0.01em] sm:text-4xl">
+          <h1 className="text-stat leading-tight font-medium tracking-[-0.01em] sm:text-4xl">
             Study for DUTERS
           </h1>
-          <p className="max-w-md text-sm text-balance text-white/85 sm:text-[15px]">
+          <p className="max-w-md text-sm text-balance text-white/85 sm:text-body">
             面向大连理工学生的学习台：计划 → 专注 → 打卡 → 复盘
           </p>
         </div>
@@ -75,7 +75,7 @@ export default async function Home() {
                 <MagnoliaArt className="h-11 w-11" />
               </span>
               <div>
-                <p className="text-[15px] font-medium text-ink">{title}</p>
+                <p className="text-body font-medium text-ink">{title}</p>
                 <p className="mt-0.5 text-sm text-muted">{desc}</p>
               </div>
             </li>
@@ -88,7 +88,7 @@ export default async function Home() {
           <h2 className="text-center text-sm font-medium tracking-tight text-ink">
             在大工的每一天
           </h2>
-          <p className="mt-1 text-center text-xs text-muted">
+          <p className="mt-1 text-center text-meta text-muted sm:text-caption">
             凌水河边的四年，值得被认真记下来
           </p>
 
@@ -103,8 +103,8 @@ export default async function Home() {
                   )}
                 </div>
                 <div className="-mt-1 min-w-0">
-                  <p className="text-[11px] tracking-widest text-muted">{when}</p>
-                  <p className="mt-0.5 text-[15px] font-medium text-ink">{title}</p>
+                  <p className="text-meta tracking-widest text-muted">{when}</p>
+                  <p className="mt-0.5 text-body font-medium text-ink">{title}</p>
                   <p className="mt-0.5 text-sm leading-relaxed text-muted">{desc}</p>
                 </div>
               </li>
@@ -114,13 +114,13 @@ export default async function Home() {
 
         {/* 校训带：1949 是建校年。这里只做身份认同，不放任何官方声明口径的东西。 */}
         <section className="w-full rounded-xl bg-dut-mist px-5 py-6 text-center">
-          <p className="text-[22px] leading-relaxed font-medium tracking-[0.2em] text-dut-deep">
+          <p className="text-page leading-relaxed font-medium tracking-[0.2em] text-dut-deep">
             海纳百川 · 自强不息
           </p>
           <p className="mt-2 text-xs tracking-[0.18em] text-dut/70">
             厚德笃学 · 知行合一
           </p>
-          <p className="mt-3 text-[11px] tracking-widest text-muted">
+          <p className="mt-3 text-meta tracking-widest text-muted">
             1949 — 至今
           </p>
         </section>
@@ -128,13 +128,13 @@ export default async function Home() {
         <div className="flex w-full flex-col gap-3 sm:flex-row">
           <Link
             href="/register"
-            className="press flex h-12 flex-1 items-center justify-center rounded-xl bg-dut text-[15px] font-medium text-white"
+            className="press flex h-12 flex-1 items-center justify-center rounded-xl bg-dut text-body font-medium text-white"
           >
             开始使用
           </Link>
           <Link
             href="/login"
-            className="press flex h-12 flex-1 items-center justify-center rounded-xl bg-white text-[15px] text-dut ring-1 ring-line"
+            className="press flex h-12 flex-1 items-center justify-center rounded-xl bg-white text-body text-dut ring-1 ring-line"
           >
             登录
           </Link>

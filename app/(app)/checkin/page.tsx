@@ -30,10 +30,10 @@ export default async function CheckInPage() {
       <section className="rounded-xl bg-white p-4 ring-1 ring-line">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[28px] leading-none font-medium tracking-tight tabular-nums text-dut-deep">
+            <p className="text-stat leading-none font-medium tracking-tight tabular-nums text-dut-deep">
               {current}
             </p>
-            <p className="mt-1.5 text-[11px] tracking-wide text-muted">当前连续天数</p>
+            <p className="mt-1.5 text-meta tracking-wide text-muted">当前连续天数</p>
           </div>
           <form action={checkInAction}>
             <button

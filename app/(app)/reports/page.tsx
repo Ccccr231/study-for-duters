@@ -119,7 +119,7 @@ export default async function ReportsPage() {
       {todayReport && (
         <section className="rounded-xl bg-white p-4 ring-1 ring-line">
           <h2 className="text-sm font-medium text-ink">今日报告</h2>
-          <p className="mt-2 whitespace-pre-wrap text-[15px] text-ink">{todayReport.content}</p>
+          <p className="mt-2 whitespace-pre-wrap text-body text-ink">{todayReport.content}</p>
         </section>
       )}
 

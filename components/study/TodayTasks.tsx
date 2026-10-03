@@ -15,7 +15,7 @@ export function TodayTasks({ tasks }: { tasks: TaskItem[] }) {
               aria-label={`完成「${task.title}」`}
               className="tap h-5 w-5 shrink-0 rounded-full border border-line transition-colors duration-150 hover:border-dut"
             />
-            <span className="truncate text-[15px] text-ink">{task.title}</span>
+            <span className="truncate text-body text-ink">{task.title}</span>
           </form>
           <form action={deleteTaskAction} className="shrink-0">
             <input type="hidden" name="taskId" value={task.id} />

@@ -34,12 +34,12 @@ export default async function PlansPage() {
           name="title"
           required
           placeholder="计划名，例如「数据结构期末冲刺」"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
           name="goal"
           placeholder="目标（可留空）"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <button
           type="submit"
@@ -63,7 +63,7 @@ export default async function PlansPage() {
                 className="block rounded-xl bg-white p-4 ring-1 ring-line"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[15px] font-medium text-ink">{plan.title}</h2>
+                  <h2 className="text-body font-medium text-ink">{plan.title}</h2>
                   <span className="text-xs text-muted">{plan._count.tasks} 个任务</span>
                 </div>
                 {plan.goal && <p className="mt-1 text-sm text-muted">{plan.goal}</p>}

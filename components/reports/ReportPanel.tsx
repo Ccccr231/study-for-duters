@@ -102,7 +102,7 @@ export function ReportPanel({ date, hasReport }: { date: string; hasReport: bool
       </div>
 
       {text && (
-        <p className="mt-3 whitespace-pre-wrap text-[15px] text-ink">
+        <p className="mt-3 whitespace-pre-wrap text-body text-ink">
           <span className="mr-1 font-medium text-dut">连小理：</span>
           {text}
         </p>

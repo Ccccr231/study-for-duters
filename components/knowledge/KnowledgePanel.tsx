@@ -143,10 +143,10 @@ export function KnowledgePanel() {
     return (
       <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
         <MagnoliaArt className="h-12 w-12" />
-        <p className="text-[15px] text-ink">先接上模型才能建知识库</p>
+        <p className="text-body text-ink">先接上模型才能建知识库</p>
         <Link
           href="/settings/model"
-          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-[15px] font-medium text-white"
+          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-body font-medium text-white"
         >
           去设置模型
         </Link>
@@ -162,14 +162,14 @@ export function KnowledgePanel() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="资料名，例如「数据结构·树」"
-          className="h-11 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={6}
           placeholder="把 Markdown 粘贴进来，或点下面的按钮选文件"
-          className="rounded-lg border border-line bg-white p-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+          className="rounded-lg border border-line bg-white p-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
           ref={fileRef}
@@ -191,7 +191,7 @@ export function KnowledgePanel() {
           <button
             onClick={() => void ingest()}
             disabled={ingesting || !content.trim()}
-            className="press h-11 flex-1 rounded-lg bg-dut text-[15px] font-medium text-white disabled:opacity-50"
+            className="press h-11 flex-1 rounded-lg bg-dut text-body font-medium text-white disabled:opacity-50"
           >
             {ingesting ? "入库中…" : "加入知识库"}
           </button>
@@ -219,12 +219,12 @@ export function KnowledgePanel() {
               }
             }}
             placeholder="例如：红黑树的插入怎么调整？"
-            className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-[15px] outline-none transition-colors duration-150 focus:border-dut"
+            className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
           />
           <button
             onClick={() => void ask()}
             disabled={asking || !question.trim()}
-            className="press h-11 rounded-lg bg-dut px-5 text-[15px] font-medium text-white disabled:opacity-50"
+            className="press h-11 rounded-lg bg-dut px-5 text-body font-medium text-white disabled:opacity-50"
           >
             {asking ? "…" : "问"}
           </button>
@@ -249,7 +249,7 @@ export function KnowledgePanel() {
         {/* 回答区是流式的（每个 chunk 都在变），所以不加 aria-live——
             否则读屏会被反复打断。它只承载正文，错误走上面的独立通道。 */}
         {answer && (
-          <div className="rounded-lg bg-surface p-3 text-[15px] whitespace-pre-wrap text-ink">
+          <div className="rounded-lg bg-surface p-3 text-body whitespace-pre-wrap text-ink">
             {answer}
           </div>
         )}
