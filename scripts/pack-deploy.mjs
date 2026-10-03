@@ -52,7 +52,11 @@ const kb = (statSync(tarPath).size / 1024).toFixed(0);
 // ⚠️ 必须同时去掉 \r 和空行：Windows 的 tar 输出是 CRLF，
 //    只 split('\n') 会让每个条目带一个 \r，导致 includes() 全部匹配失败
 //    （第一次就是这么误报"压缩包缺少关键文件"的）。
-const entries = execFileSync("tar", ["-tzf", tarPath], { encoding: "utf8" })
+// ⚠️ 这里必须传「工作目录 + 裸文件名」，不能传绝对路径：
+//    Git Bash 里的 tar 是 GNU tar，会把 `C:\Users\...` 当成远程主机 `C:`，
+//    报 `tar (child): Cannot connect to C: resolve failed`；
+//    而 Windows 自带的 bsdtar 不支持 --force-local。改用相对文件名两边都兼容。
+const entries = execFileSync("tar", ["-tzf", tarName], { encoding: "utf8", cwd: OUT_DIR })
   .split(/\r?\n/)
   .map((l) => l.trim())
   .filter(Boolean);
