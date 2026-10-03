@@ -77,6 +77,17 @@ export async function POST(req: Request) {
   if (!parsed.ok) {
     return Response.json({ error: PARSE_FAILURE_TEXT[parsed.reason] }, { status: 400 });
   }
+  // 检索不依赖模型，但**生成回答**依赖它。必须在这里显式校验：
+  // 否则会一路走到 chatModel() 才失败，报错对用户毫无意义。
+  if (!parsed.config.baseUrl || !parsed.config.apiKey || !parsed.config.chatModel) {
+    return Response.json(
+      {
+        error:
+          "还没填模型：资料可以照常上传和检索，但生成回答需要先在「设置 → 模型」里填好 Base URL / Key / 模型名",
+      },
+      { status: 400 },
+    );
+  }
 
   let vector: number[] | null = null;
   if (parsed.config.embedModel) {

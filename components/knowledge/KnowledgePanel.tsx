@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { hasLlmConfig, loadLlmConfig } from "@/lib/ai/client-config";
 
 // MVP 只收 Markdown：解析成本为零、体积小、能避开 Vercel 免费层 60s 超时。
@@ -10,8 +9,13 @@ import { hasLlmConfig, loadLlmConfig } from "@/lib/ai/client-config";
 const ACCEPT = ".md,.markdown,.txt,text/markdown,text/plain";
 
 export function KnowledgePanel() {
-  const [ready, setReady] = useState<boolean | null>(null);
+  // loaded 只表示"配置读过了"，不是"配好了"。
+  // 关键：**没配模型也要能进知识库**——上传与关键词检索本来就不依赖模型
+  // （见 app/api/knowledge/ingest/route.ts 的降级口径：没 embedding 就无向量落库，
+  // 检索端走 bigram 关键词打分）。此前用 hasLlmConfig 整页拦截，把这条路堵死了。
+  const [loaded, setLoaded] = useState(false);
   const [config, setConfig] = useState<ReturnType<typeof loadLlmConfig>>(null);
+  const [canChat, setCanChat] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [ingesting, setIngesting] = useState(false);
@@ -32,7 +36,9 @@ export function KnowledgePanel() {
     // 首次渲染（含 SSR）必须当作"未配置"，挂载后再读，否则与水合结果不一致。
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig(c);
-    setReady(hasLlmConfig(c));
+    // canChat 只决定"能不能生成回答"，不决定"能不能传资料"
+    setCanChat(hasLlmConfig(c));
+    setLoaded(true);
   }, []);
 
   async function pickFile(file: File) {
@@ -42,7 +48,14 @@ export function KnowledgePanel() {
   }
 
   async function ingest() {
-    if (!config || !content.trim()) return;
+    // 注意：这里**不能**因为 config 为 null 就返回。
+    // 没配模型时 config 是 null，但入库本来就不依赖模型——
+    // 服务端拿到 null 会走 parseLlmConfig 失败→无向量落库的降级路径。
+    // （此前写作 `if (!config || !content.trim()) return`，会把降级路径静默堵死。）
+    if (!content.trim()) {
+      setIngestMsg({ ok: false, text: "先贴点内容，或选一个文件" });
+      return;
+    }
     setIngesting(true);
     setIngestMsg(null);
     try {
@@ -135,29 +148,17 @@ export function KnowledgePanel() {
     }
   }
 
-  if (ready === null) return <p className="px-5 py-6 text-sm text-muted">读取本机配置…</p>;
-
-  if (!ready) {
-    // 配置要等挂载后从 localStorage 读，所以这块是"后出现"的：
-    // 加 panel-in 让它浮起，而不是凭空闪出来。
-    return (
-      <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
-        <MagnoliaArt className="h-12 w-12" />
-        <p className="text-body text-ink">先接上模型才能建知识库</p>
-        <Link
-          href="/settings/model"
-          className="press flex h-11 items-center justify-center rounded-lg bg-dut px-6 text-body font-medium text-white"
-        >
-          去设置模型
-        </Link>
-      </div>
-    );
-  }
+  if (!loaded) return <p className="px-5 py-6 text-sm text-muted">读取本机配置…</p>;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <section className="flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-line">
-        <h2 className="text-sm font-medium text-ink">上传资料（Markdown）</h2>
+        <div>
+          <h2 className="text-sm font-medium text-ink">上传资料</h2>
+          <p className="mt-0.5 text-meta text-muted">
+            传进来就能检索，不需要先配模型。
+          </p>
+        </div>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -168,7 +169,7 @@ export function KnowledgePanel() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={6}
-          placeholder="把 Markdown 粘贴进来，或点下面的按钮选文件"
+          placeholder="把笔记贴进来，或点下面的按钮选文件"
           className="rounded-lg border border-line bg-white p-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
@@ -207,7 +208,29 @@ export function KnowledgePanel() {
       </section>
 
       <section className="flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-line">
-        <h2 className="text-sm font-medium text-ink">问自己的资料</h2>
+        <div>
+          <h2 className="text-sm font-medium text-ink">问自己的资料</h2>
+          <p className="mt-0.5 text-meta text-muted">
+            先把资料传进来，再让连小理基于它回答。
+          </p>
+        </div>
+
+        {/* 只有"生成回答"这一步需要模型；上传与检索不需要。
+            所以这里不拦整页，只在缺模型时提示一句并给出去设置的入口。 */}
+        {!canChat && (
+          <div className="panel-in flex flex-col items-start gap-2 rounded-lg bg-dut-mist/60 p-3">
+            <p className="text-sm text-ink">
+              还差一步：填上模型才能生成回答（资料照常可以传、可以检索）
+            </p>
+            <Link
+              href="/settings/model"
+              className="press flex h-9 items-center justify-center rounded-lg bg-dut px-4 text-sm font-medium text-white"
+            >
+              去设置模型
+            </Link>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <input
             value={question}
@@ -223,7 +246,7 @@ export function KnowledgePanel() {
           />
           <button
             onClick={() => void ask()}
-            disabled={asking || !question.trim()}
+            disabled={asking || !question.trim() || !canChat}
             className="press h-11 rounded-lg bg-dut px-5 text-body font-medium text-white disabled:opacity-50"
           >
             {asking ? "…" : "问"}
