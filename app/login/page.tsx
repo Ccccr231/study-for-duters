@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth/AuthForm";
-import { MainBuildingSilhouette } from "@/components/dut/MainBuildingSilhouette";
+import { BuildingArt } from "@/components/dut/BuildingArt";
 import { WaveDivider } from "@/components/dut/WaveDivider";
 import { currentUser } from "@/lib/auth/session";
 
@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex flex-1 flex-col bg-white">
       <div className="bg-dut-mist px-6 pt-10 pb-2">
         <div className="mx-auto flex w-full max-w-md flex-col items-center gap-2">
-          <MainBuildingSilhouette className="h-20 w-auto" />
+          <BuildingArt className="h-24 w-auto" />
           <h1 className="text-xl font-medium tracking-tight text-dut-deep">Study for DUTERS</h1>
           <p className="text-sm text-muted">计划 → 专注 → 打卡 → 复盘</p>
         </div>

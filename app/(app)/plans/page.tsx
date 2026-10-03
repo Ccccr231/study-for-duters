@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { createPlanAction } from "@/lib/actions/study";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
@@ -51,7 +51,7 @@ export default async function PlansPage() {
 
       {plans.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl bg-white py-10 ring-1 ring-line">
-          <Magnolia className="h-10 w-10" />
+          <MagnoliaArt className="h-10 w-10" />
           <p className="text-sm text-muted">还没有计划，先建一个</p>
         </div>
       ) : (

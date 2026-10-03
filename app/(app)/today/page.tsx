@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { WaveDivider } from "@/components/dut/WaveDivider";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { TodayTasks } from "@/components/study/TodayTasks";
 import { checkInAction } from "@/lib/actions/study";
 import { requireUser } from "@/lib/auth/session";
@@ -114,7 +114,7 @@ export default async function TodayPage() {
           </div>
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-6">
-              <Magnolia className="h-10 w-10" />
+              <MagnoliaArt className="h-10 w-10" />
               <p className="text-sm text-muted">今天还没安排任务</p>
               <Link href="/plans" className="tap text-sm text-dut">
                 去建一个学习计划

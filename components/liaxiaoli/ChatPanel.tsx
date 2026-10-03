@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { hasLlmConfig, loadLlmConfig } from "@/lib/ai/client-config";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -100,7 +100,7 @@ export function ChatPanel() {
   if (!ready) {
     return (
       <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
-        <Magnolia className="h-12 w-12" />
+        <MagnoliaArt className="h-12 w-12" />
         <p className="text-center text-[15px] text-ink">连小理还没接上模型</p>
         <p className="text-center text-sm text-muted">
           这个平台不预置任何密钥，需要你自己填 Base URL、API Key 和模型名。

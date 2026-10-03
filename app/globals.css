@@ -256,6 +256,15 @@ a {
   animation: intro-bg var(--intro-dur, 2400ms) var(--ease-in-out) both;
 }
 
+/* 深蓝底上的水彩水印。
+   直接把浅色水彩用 opacity 压上去会蒙成一片灰、还看得出矩形底，
+   所以用滤镜把它提成"白色笔触"：先 brightness(0) 把彩色压成黑，
+   再 invert(1) 变白，最后用 opacity 控制浓度。
+   透明区域不受影响（filter 不改 alpha），所以不会出现矩形底。 */
+.ink-on-blue {
+  filter: brightness(0) invert(1) opacity(0.22);
+}
+
 .intro-glow {
   position: absolute;
   width: 70vmin;

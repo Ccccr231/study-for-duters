@@ -587,6 +587,7 @@ WebSocket 聊天室（用 `centrifugo`，不自写 sidecar）、3D 学习小岛�
 | 18 | §8.2 降级「回退 Postgres 全文检索」 | 从整句 ILIKE 改为 **bigram 关键词打分排序**（`lib/rag/keywords.ts`，纯函数 + 6 例单测） | 端到端验收发现：中文自然语言提问整句 ILIKE 几乎必然零命中，降级形同虚设。bigram 打分后「红黑树插入时叔叔是红色怎么办」能稳定命中并标注来源（e2e 实测通过）。 |
 | 19 | §12 建表「在 Neon 控制台执行 migration.sql」 | 提供 `scripts/apply-migration.mjs`（pg 驱动执行 + 登记 `_prisma_migrations`，幂等） | Prisma CLI 的 schema-engine 在本机连不上 Neon（子进程参数转义/冷启动；`channel_binding=require` 也不支持，连接串里要去掉）。CLI 能用的环境仍首选 `migrate deploy`。 |
 | 20 | §6.3 合规「不使用官方校徽作为产品 Logo」 | **已按项目所有者明确要求改为使用官方校徽**：首次进入的开场序列（`components/dut/Emblem.tsx` + `public/dut-emblem.png`）使用官方校徽；其余装饰（海浪 / 玉兰 / 主楼剪影）仍为自绘。站内口径保持「面向 DUT 学生的个人/开源项目，非官方」。 | 所有者 2026-10-02 明确指示「直接使用官方校徽」，本条约定被显式覆盖。**遗留风险（未消除）**：校徽与校名标准字受学校 VI 管理办法约束，以经营为目的使用需申请许可；该风险已随决定转移给所有者。如需回退，把 `EMBLEM_SRC` 换成自绘资源即可，无需改其它代码。 |
+| 21 | §6.3 合规「产品自绘一个标识……与学校官方标识保持距离」 | **装饰母题改为所有者提供的水彩画稿**：玉兰（`public/dut-magnolia.png`）与主楼（`public/dut-building.png`）取自一幅水彩画；海浪仍自绘。组件 `MagnoliaArt` / `BuildingArt` 采用「图片优先 + 缺图回退自绘」，缺图不破图。 | 所有者 2026-10-03 决定「使用公开可见的官方或二创素材，直接用了」（见 HANDOFF 对话）。**版权归原作者**，授权责任由所有者承担；与 §6.3 原约定冲突，故本条覆盖之。技术注意：素材为米色纸底水彩，按「与纸底色彩距离 → alpha」抠图，**只适合浅色底**；深蓝底上必须用 `.ink-on-blue` 滤镜提白，否则发灰且露出矩形底。回退方式：把两个组件里的 `USE_ART` 置为 `false`。 |
 
 **仍未解决的前置条件**：本地无 Postgres，登录 / 任务 / 番茄钟 / 打卡的**数据库路径尚未端到端验证**（代码与迁移已就绪）。需要一个 Neon 库：执行 `prisma/migrations/000000_init/migration.sql`，把连接串填进 `.env` 的 `DATABASE_URL`，再 `pnpm exec prisma migrate resolve --applied 000000_init`（若用 `migrate deploy` 则不需要）。
 

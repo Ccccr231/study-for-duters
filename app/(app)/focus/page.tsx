@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { PomodoroTimer } from "@/components/study/PomodoroTimer";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
@@ -39,7 +39,7 @@ export default async function FocusPage() {
 
       {tasks.length === 0 && (
         <div className="flex w-full items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-line">
-          <Magnolia className="h-8 w-8 shrink-0" />
+          <MagnoliaArt className="h-8 w-8 shrink-0" />
           <p className="text-sm text-muted">
             还没有未完成的任务。不影响专注，但关联任务后统计更准。
           </p>

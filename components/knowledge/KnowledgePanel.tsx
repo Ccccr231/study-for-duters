@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { hasLlmConfig, loadLlmConfig } from "@/lib/ai/client-config";
 
 // MVP 只收 Markdown：解析成本为零、体积小、能避开 Vercel 免费层 60s 超时。
@@ -142,7 +142,7 @@ export function KnowledgePanel() {
     // 加 panel-in 让它浮起，而不是凭空闪出来。
     return (
       <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
-        <Magnolia className="h-12 w-12" />
+        <MagnoliaArt className="h-12 w-12" />
         <p className="text-[15px] text-ink">先接上模型才能建知识库</p>
         <Link
           href="/settings/model"

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import {
   archivePlanAction,
   createTaskAction,
@@ -70,7 +70,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
 
       {plan.tasks.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl bg-white py-10 ring-1 ring-line">
-          <Magnolia className="h-10 w-10" />
+          <MagnoliaArt className="h-10 w-10" />
           <p className="text-sm text-muted">还没有任务，加一个就能开始专注</p>
         </div>
       ) : (

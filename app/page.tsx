@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Magnolia } from "@/components/dut/Magnolia";
-import { MainBuildingSilhouette } from "@/components/dut/MainBuildingSilhouette";
+import { Emblem } from "@/components/dut/Emblem";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { WaveDivider } from "@/components/dut/WaveDivider";
 import { currentUser } from "@/lib/auth/session";
 
@@ -29,15 +29,22 @@ export default async function Home() {
       {/* hero：移动端居中成塔，桌面端改为左文右图的分栏——
           否则 1280px 宽下会缩成一条居中的窄色带，左右全是空。 */}
       <section className="relative overflow-hidden bg-dut px-6 pt-14 pb-12 text-white sm:pt-20 sm:pb-16">
-        {/* 主楼剪影作为横向水印压在最底边（固定高度 + w-full，靠 viewBox 保比例），
-            白色描边才在蓝底上可见。压到 -bottom-6 是刻意的：只露上半部分，
-            读起来像"地平线"而不是一张和副标题抢注意力的插图。 */}
-        <MainBuildingSilhouette
-          tone="onBlue"
-          className="pointer-events-none absolute inset-x-0 -bottom-6 hidden h-28 w-full opacity-20 sm:block"
-        />
+        {/* 主楼水彩（所有者提供素材）压在 hero 底部。
+            自绘剪影在深蓝上只剩轮廓，换成有笔触的水彩后质感更足；
+            压到 -bottom-2 只露楼体主体，并降到 30% 透明度，
+            让它读起来像"印在蓝底上的插画"而不是贴上去的图。 */}
+        <div className="pointer-events-none absolute inset-x-0 -bottom-2 hidden h-32 justify-center sm:flex">
+          {/* eslint-disable-next-line @next/next/no-img-element -- 纯装饰水印，不需要 next/image 的优化与布局开销 */}
+          <img
+            src="/dut-building.png"
+            alt=""
+            aria-hidden="true"
+            className="ink-on-blue h-full w-auto object-contain"
+          />
+        </div>
         <div className="relative mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-3 text-center sm:items-start sm:gap-4 sm:text-left">
-          <MainBuildingSilhouette tone="onBlue" className="h-20 w-auto opacity-80 sm:hidden" />
+          {/* 移动端：白底圆形校徽在深蓝上很跳，比线条剪影更有"到校了"的感觉 */}
+          <Emblem className="h-16 w-16 sm:hidden" />
           {/* 大字号要负字距（字越大越显松）；这是拉丁字母标题，收一点就够。
               中文副标题用 text-balance，避免在「复 / 盘」这种字中间断行。 */}
           <h1 className="text-[28px] leading-tight font-medium tracking-[-0.01em] sm:text-4xl">
@@ -62,7 +69,11 @@ export default async function Home() {
               className="rise flex items-start gap-3 rounded-xl bg-white p-4 ring-1 ring-line"
               style={{ animationDelay: `${40 + i * 60}ms` }}
             >
-              <Magnolia className="h-8 w-8 shrink-0" />
+              {/* 水彩玉兰在 48px 下细节会糊成一团，所以给它一个淡底托住，
+                  读起来像"一幅小画"而不是一条脏边 */}
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-dut-mist/60">
+                <MagnoliaArt className="h-11 w-11" />
+              </span>
               <div>
                 <p className="text-[15px] font-medium text-ink">{title}</p>
                 <p className="mt-0.5 text-sm text-muted">{desc}</p>

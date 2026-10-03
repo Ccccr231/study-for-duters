@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Magnolia } from "@/components/dut/Magnolia";
+import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 
 export default function NotFound() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 bg-surface px-6 py-16">
-      <Magnolia className="h-12 w-12" />
+      <MagnoliaArt className="h-12 w-12" />
       <p className="text-lg font-medium text-ink">这一页不存在</p>
       <p className="text-sm text-muted">地址可能输错了，或者内容已经被移走。</p>
       <Link
