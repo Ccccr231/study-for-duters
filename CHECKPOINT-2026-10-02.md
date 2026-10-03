@@ -1,17 +1,73 @@
 # 存档 · 下次说「开始」即可直接开工
 
-> 存档时间：2026-10-03 08:30（UTC+8）
-> 仓库：`Ccccr231/study-for-duters`（PRIVATE）· HEAD `f1f97ad` · 30 个 commit · 工作区干净
-> 本地与远端完全一致。
+> 存档时间：2026-10-03 09:50（UTC+8）
+> 仓库：`Ccccr231/study-for-duters`（PRIVATE）· HEAD `17b7d02` · 38 个 commit · 工作区干净
+> 本地与远端完全一致。**⚠️ 历史已重写过一次（清除泄漏的 token），旧的 commit SHA 全部失效。**
 
 ---
 
 ## 0. 一句话现状
 
-**功能完整、验证通过、UI 已完成五轮提升（含校徽开场序列、官方/二创素材、字号阶梯）；线上未部署**
+**功能完整、12 项实测审计全绿、UI 已完成十一轮提升；线上仍未部署**
 （Vercel 路线因账号受限放弃，改走阿里云自托管，脚本已备好）。
 
-**⚠️ 当前有一个待你拍板的功能缺口（见 §2 ①）：知识库只收 Markdown。**
+**当前需要你做的事只有两件**（我做不了，都需要你的账号）：
+1. **轮换 DeepSeek API Key** —— 聊天记录里明文出现过（仓库里没有）
+2. **部署** —— 买服务器；`deploy/SERVER.md` 与 `deploy/install.sh` 已就绪
+
+---
+
+## 0.1 最终实测状态（12 项审计，全部可复跑）
+
+| 审计 | 命令 | 结果 |
+|---|---|---|
+| 类型 / 规范 / 单测 / 构建 | `pnpm typecheck` `pnpm lint` `pnpm test` `pnpm build` | 0 错误 · 0 问题 · 50/50 · 20/20 |
+| 响应式溢出（320/390px） | `node scripts/overflow-check.mjs` | 6/6 |
+| 无 JS 渐进增强 | `node scripts/nojs-check.mjs` | 7/7（注册/打卡/建计划真的落库） |
+| 无 JS 骨架屏卡死 | `node scripts/skeleton-check.mjs` | 0/8 |
+| 移动端原生化 | `node scripts/mobile-check.mjs` | 8/8 |
+| 可访问性（ARIA/标题/焦点） | `node scripts/a11y-check.mjs` | 11/11 |
+| 色彩对比度（WCAG AA） | `node scripts/contrast-check.mjs` | 156 处 0 不达标 |
+| 读屏播报行为 | `node scripts/sr-check.mjs` | 10/10 |
+| 滚动入场 | `node scripts/scroll-check.mjs` | 7/7 |
+| 图片 srcset | `node scripts/srcset-check.mjs` | 4/4（@1x 省 90% / @3x 省 68%） |
+| 密钥泄漏 | `node scripts/secret-scan.mjs` | 0 处（含全部 38 个提交） |
+| 首屏性能（4G + 4× CPU 降速） | `a11y-check.mjs` 内 | FCP ~820ms · JS 137KB |
+
+设计对照截图：`node scripts/shots.mjs after`（22 张，两种视口）。
+
+---
+
+## 0.2 2026-10-03 安全事件：Vercel token 泄漏与清除（教训值得记住）
+
+`CHECKPOINT` 文档里曾写下 Vercel token 的**完整明文**，且该文件被提交，
+导致 **17 个提交**都带着它，并推到了 GitHub。
+
+只改工作区是不够的 —— 历史里的凭据会被每次 clone 带走。实际清除步骤：
+
+```bash
+# 1. --index-filter + update-index --cacheinfo 精确替换那一段字节
+#    （hash-object -w --path=... 只写对象、不改索引，会表现为 "Ref is unchanged"）
+git filter-branch -f --index-filter "<python scripts/_redact_secret.py>" -- --all
+# 2. 删掉 refs/original/*（它们还指着旧历史）、删备份分支、expire reflog
+git for-each-ref --format='%(refname)' refs/original | xargs -n1 git update-ref -d
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+# 3. 强制推送
+git push --force origin main
+```
+
+核验（三重，缺一不可）：
+- `git grep <token> $(git rev-list --all)` → 0 处
+- 对象库：`git cat-file --batch-all-objects` 里无含该串的 blob
+- **从远端 fetch 后重跑** `secret-scan.mjs` → 38 个提交全部干净
+
+⚠️ **清除历史不能替代吊销**：凭据只要推送过就应视为已泄漏，
+必须去服务商侧 revoke。本次 token 因对应账号受限已无用，
+但**DeepSeek API Key 仍在待办里**。
+
+教训：**永远不要把凭据写进任何会被提交的文件**，注释、文档、存档里都不行 ——
+要写就写"已作废/去 XX 处 revoke"，不要写值。`scripts/secret-scan.mjs` 已固化这条检查。
 
 ---
 
@@ -206,7 +262,9 @@ Next 16 自带 React `<ViewTransition>`（无需额外配置，见 `node_modules
 
 ### 安全（建议尽快做）
 - ⚠️ **轮换 DeepSeek API Key**：聊天记录里明文出现过
-- ⚠️ **Revoke Vercel token**：已作废的 Vercel token（完整值已于 2026-10-03 从仓库与 git 历史中清除）
+- ✅ **Vercel token 已从仓库与全部历史中清除**（2026-10-03）：
+  该值曾以明文写入本文档并被提交，17 个提交受影响；已重写历史并强制推送。
+  token 本身已无用（对应账号受限），无需再操作。见 §0.2。
   已放弃 Vercel 路线（账号 `limited: true` 导致所有部署被 BLOCKED），token 已无用
 
 ---
