@@ -494,6 +494,27 @@ html:not([data-intro="1"]) .intro {
   filter: brightness(0.94);
 }
 
+/* 滚动入场：元素进入视口时上浮淡入。
+   用 `animation-timeline: view()` —— 纯 CSS、零 JS，符合本项目的无 JS 渐进增强约束
+   （用 IntersectionObserver 就得写客户端组件）。
+
+   ⚠️ 整个规则必须包在 @supports 里。原因：若不支持的浏览器拿到
+   `animation-timeline: view()`，会把它当成"落在页面加载上的普通动画"，
+   播完停在 from（opacity: 0）—— 内容会**永久不可见**。
+   放在 @supports 内则退化为"完全不动画、内容正常显示"，是安全的一侧。
+
+   entry 0% → cover 30%：元素刚露头就开始，走到视口约三分之一处结束，
+   不会让人等太久。 */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-rise {
+      animation: rise 1ms linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+  }
+}
+
 /* ---------------- 无障碍降级 ---------------- */
 
 /* 底部导航的 tab：文字色与激活圆点一起过渡。

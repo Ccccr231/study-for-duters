@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Emblem } from "@/components/dut/Emblem";
+import { artSrcSet, SIZES } from "@/components/dut/art-sizes";
 import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { WaveDivider } from "@/components/dut/WaveDivider";
 import { FirstVisitIntro } from "@/components/shell/FirstVisitIntro";
@@ -41,8 +42,13 @@ export default async function Home() {
           {/* eslint-disable-next-line @next/next/no-img-element -- 纯装饰水印，不需要 next/image 的优化与布局开销 */}
           <img
             src="/dut-building.png"
+            // 多尺寸变体：这里只显示 128px 高，不必下 512 的图
+            srcSet={artSrcSet("/dut-building.png")}
+            sizes={SIZES.buildingWatermark}
             alt=""
             aria-hidden="true"
+            width={512}
+            height={512}
             className="ink-on-blue h-full w-auto object-contain"
           />
         </div>
@@ -100,7 +106,13 @@ export default async function Home() {
 
           <ol className="mt-6 flex w-full flex-col gap-0">
             {RHYTHM.map(([when, title, desc, color], i) => (
-              <li key={when} className="relative flex gap-4 pb-6 last:pb-0">
+              // scroll-rise：滚到视口时上浮淡入（纯 CSS 的 view() 时间轴；
+              // 不支持的浏览器里这条规则整体不生效，内容照常显示，不会消失）。
+              <li
+                key={when}
+                className="scroll-rise relative flex gap-4 pb-6 last:pb-0"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
                 {/* 时间轴：竖线 + 节点。最后一个不画线，避免尾巴悬空 */}
                 <div className="flex flex-col items-center">
                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color}`} />
@@ -119,7 +131,7 @@ export default async function Home() {
         </section>
 
         {/* 校训带：1949 是建校年。这里只做身份认同，不放任何官方声明口径的东西。 */}
-        <section className="w-full rounded-xl bg-dut-mist px-5 py-6 text-center">
+        <section className="scroll-rise w-full rounded-xl bg-dut-mist px-5 py-6 text-center">
           <p className="text-page leading-relaxed font-medium tracking-[0.2em] text-dut-deep">
             海纳百川 · 自强不息
           </p>

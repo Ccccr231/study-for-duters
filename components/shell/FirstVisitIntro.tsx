@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Emblem } from "@/components/dut/Emblem";
+import { SIZES } from "@/components/dut/art-sizes";
 
 /** 与 globals.css 的 --intro-dur 默认值保持一致 */
 const DURATION_MS = 2400;
@@ -53,7 +54,10 @@ export function FirstVisitIntro() {
     >
       <div className="intro-glow" />
       <div className="intro-emblem">
-        <Emblem className="h-40 w-40 drop-shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:h-48 sm:w-48" />
+        <Emblem
+          className="h-40 w-40 drop-shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:h-48 sm:w-48"
+          sizes={SIZES.emblemIntro}
+        />
       </div>
       <p className="intro-motto">{MOTTO.join(" · ")}</p>
     </div>

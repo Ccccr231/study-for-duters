@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MainBuildingSilhouette } from "@/components/dut/MainBuildingSilhouette";
+import { artSrcSet, SIZES } from "@/components/dut/art-sizes";
 
 /**
  * 主楼图（水彩素材）。
@@ -26,10 +27,14 @@ export function BuildingArt({ className = "h-20 w-auto" }: { className?: string 
     // eslint-disable-next-line @next/next/no-img-element -- 需要 onError 回退，且是装饰性插图
     <img
       src={ART_SRC}
+      // 多尺寸变体：登录页只显示 96px 高，不必下 512 的图（35.8KB → 4.4KB）
+      srcSet={artSrcSet(ART_SRC)}
+      sizes={SIZES.building}
       alt=""
       aria-hidden="true"
-      width={720}
-      height={720}
+      // 真实资产是 512×512（此前误写 720，会让浏览器推出错误的宽高比）
+      width={512}
+      height={512}
       decoding="async"
       className={`object-contain ${className}`}
       onError={() => setFailed(true)}

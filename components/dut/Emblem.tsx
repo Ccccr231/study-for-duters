@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { artSrcSet, SIZES } from "@/components/dut/art-sizes";
 
 /**
  * 大工校徽。
@@ -15,7 +16,14 @@ import { useState } from "react";
  */
 const EMBLEM_SRC = "/dut-emblem.png";
 
-export function Emblem({ className = "h-16 w-16" }: { className?: string }) {
+export function Emblem({
+  className = "h-16 w-16",
+  sizes = SIZES.emblemSmall,
+}: {
+  className?: string;
+  /** 显示尺寸提示，供浏览器挑最小的够用档位（如开场序列传 emblemIntro） */
+  sizes?: string;
+}) {
   const [failed, setFailed] = useState(false);
 
   // 图片缺失时不留破图：退回「连」字圆形徽标（与站内头部标识一致）
@@ -34,11 +42,18 @@ export function Emblem({ className = "h-16 w-16" }: { className?: string }) {
     // eslint-disable-next-line @next/next/no-img-element -- 开场序列需要极简依赖，且要能用 onError 回退
     <img
       src={EMBLEM_SRC}
+      srcSet={artSrcSet(EMBLEM_SRC)}
+      sizes={sizes}
       alt="大连理工大学校徽"
       width={512}
       height={512}
-      className={className}
+      // 校徽出现在开场首屏，必须立刻加载；
+      // 若用 lazy，开场动画会先显示空白再补图。
+      loading="eager"
+      // 首屏关键图，用高优先级提示浏览器提前取
+      fetchPriority="high"
       decoding="async"
+      className={className}
       onError={() => setFailed(true)}
     />
   );

@@ -57,6 +57,28 @@ pnpm dev                  # http://localhost:3000
 | `node scripts/a11y-check.mjs` | 可访问性审计（ARIA 名称 / 标题层级 / alt / 键盘焦点）+ 首屏性能实测 |
 | `node scripts/contrast-check.mjs` | 逐个文字算 WCAG 对比度（**含半透明叠层的 alpha 合成**） |
 | `node scripts/sr-check.mjs` | 读屏可用性 10 项（播报次数 / 无障碍标签 / live region 是否真在树里） |
+| `node scripts/scroll-check.mjs` | 滚动入场：是否随滚动推进、不支持时是否安全、减弱动效是否关闭 |
+| `node scripts/srcset-check.mjs` | 实测 `srcset` 是否真的省带宽（@1x 与 @3x 各跑一遍） |
+
+## 图片带宽与滚动入场（实测）
+
+**`srcset`**：三张水彩资产原图都是 512×512，但显示尺寸最小只有 32px。
+用 `scripts/gen-art-variants.py` 生成 128/256/384 三档变体后实测：
+
+| 屏幕 | 实际下载 | 对比全用 512 原图 |
+|---|---|---|
+| @1x（390px 视口） | 3 张 / **15KB** | 省 **90%** |
+| @3x（iPhone 视口） | 4 张 / **67KB** | 省 **68%** |
+
+512 原图在两种屏幕下都**零下载**。档位注意：最初只有 128/256 两档时，
+@3x 下校徽需要 576px、主楼需要 288px，都会**跳档退回 512**（整页 87KB）——
+加一档 384 才真正命中。
+
+**滚动入场**：校训带与时间轴用纯 CSS 的 `animation-timeline: view()`（零 JS，符合无 JS 约束）。
+**整个规则必须包在 `@supports (animation-timeline: view())` 里** ——
+否则不支持的浏览器会把它当成"落在页面加载上的普通动画"、播完停在 `from`（`opacity: 0`），
+内容会**永久不可见**。实测：进入视口 opacity 0.18 → 0.34 → 1；
+全页滚动扫描「在视口内却仍然很淡」0 处；减弱动效下 `anims=0` 且完全可见。
 
 ## 读屏可用性（实测播报行为）
 

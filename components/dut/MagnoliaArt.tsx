@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Magnolia } from "@/components/dut/Magnolia";
+import { artSrcSet, SIZES } from "@/components/dut/art-sizes";
 
 /**
  * 玉兰图（水彩素材）。
@@ -28,10 +29,15 @@ export function MagnoliaArt({ className = "h-8 w-8" }: { className?: string }) {
     // eslint-disable-next-line @next/next/no-img-element -- 需要 onError 回退，且是装饰性小图
     <img
       src={ART_SRC}
+      // 多尺寸变体：小尺寸处不必下 512 的图（52KB → 6.1KB）。
+      // 详见 components/dut/art-sizes.ts。
+      srcSet={artSrcSet(ART_SRC)}
+      sizes={SIZES.artSmall}
       alt=""
       aria-hidden="true"
-      width={720}
-      height={720}
+      // 真实资产是 512×512（此前误写 720，会让浏览器推出错误的宽高比）
+      width={512}
+      height={512}
       loading="lazy"
       decoding="async"
       className={`shrink-0 object-contain ${className}`}
