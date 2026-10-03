@@ -207,6 +207,69 @@ try {
     JSON.stringify(c),
   );
 
+  // 12. 剩余 CRUD：删除任务 / 归档计划
+  const { rows: planRows } = await db.query(
+    `SELECT id FROM "Plan" WHERE "userId" = $1 ORDER BY "createdAt" DESC LIMIT 1`,
+    [uid],
+  );
+  const planId = planRows[0]?.id;
+  const taskCount = async () =>
+    (await db.query(`SELECT count(*)::int AS n FROM "Task" WHERE "userId" = $1`, [uid])).rows[0].n;
+
+  await page.goto(`${BASE}/plans/${planId}`, { waitUntil: "domcontentloaded" });
+  const beforeDel = await taskCount();
+  await page.getByRole("button", { name: "删除任务" }).first().click();
+  let afterDel = beforeDel;
+  for (let i = 0; i < 24 && afterDel === beforeDel; i++) {
+    await page.waitForTimeout(500);
+    afterDel = await taskCount();
+  }
+  check("删除任务落库（2 → 1）", beforeDel === 2 && afterDel === 1, `${beforeDel} → ${afterDel}`);
+
+  // 归档：archivePlanAction 用 updateMany({ id, userId })，状态转 archived
+  await page.getByRole("button", { name: "归档这个计划" }).click();
+  let planStatus = null;
+  for (let i = 0; i < 24; i++) {
+    const { rows } = await db.query(`SELECT status FROM "Plan" WHERE id = $1`, [planId]);
+    planStatus = rows[0]?.status;
+    if (planStatus === "archived") break;
+    await page.waitForTimeout(500);
+  }
+  await page.goto(`${BASE}/plans`, { waitUntil: "domcontentloaded" });
+  const listText = await page.locator("body").innerText();
+  check(
+    "归档计划：状态转 archived 且从列表消失",
+    planStatus === "archived" && !listText.includes("验收计划·数据结构"),
+    `status=${planStatus}，列表仍含标题=${listText.includes("验收计划·数据结构")}`,
+  );
+
+  // 13. 越权（IDOR）：B 账号访问 A 的计划详情 → 必须 404，且不能泄漏标题。
+  //     app/(app)/plans/[id]/page.tsx 用的是 findFirst({ id, userId }) + notFound()，
+  //     这里实测把它锁住——归属校验写对了但哪天被改掉，这条会立刻红。
+  const otherCtx = await browser.newContext();
+  const otherPage = await otherCtx.newPage();
+  otherPage.setDefaultTimeout(60000);
+  await otherPage.goto(`${BASE}/register`, { waitUntil: "domcontentloaded" });
+  await otherPage.getByLabel("邮箱").fill(`accept-b-${Date.now()}@test.dev`);
+  await otherPage.getByLabel("密码").fill(password);
+  await otherPage.getByRole("button", { name: "注册并开始" }).click();
+  await otherPage.waitForURL("**/today", { timeout: 30000 });
+  const idorResp = await otherPage.goto(`${BASE}/plans/${planId}`, { waitUntil: "domcontentloaded" });
+  await otherPage.waitForTimeout(1500);
+  const idorText = await otherPage.locator("body").innerText();
+  const idorLeaked = idorText.includes("验收计划·数据结构");
+  // 安全属性是「不泄漏内容」；状态码或 404 文案任一成立即可（避免对 Next 的
+  // notFound() 究竟返回 404 还是 200 过度约束）。
+  const blocked =
+    !idorLeaked && ((idorResp?.status() ?? 0) >= 400 || idorText.includes("这一页不存在"));
+  check(
+    "越权访问他人计划被拦（不泄漏内容）",
+    blocked,
+    `HTTP ${idorResp?.status()}，泄漏标题=${idorLeaked}，显示 404 文案=${idorText.includes("这一页不存在")}`,
+  );
+  await otherPage.screenshot({ path: `${SHOTS}08-idor-blocked.png` });
+  await otherCtx.close();
+
   // ── 以下是错误路径与安全边界：部署后最容易暴露 500 的地方，
   //    单独开 context（空 cookie），不污染主会话。
   const anon = await browser.newContext();
