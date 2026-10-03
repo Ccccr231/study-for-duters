@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { FirstVisitIntro } from "@/components/shell/FirstVisitIntro";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,15 +23,15 @@ export const viewport: Viewport = {
  * 用 sessionStorage 而不是 localStorage：**每个标签页会话播一次**。
  * - 会话内刷新 / 切页面 → 不再播（否则每次刷新都等 2.4 秒就成阻碍了）
  * - 关掉标签页重新打开、或开新标签 → 再播一次（保留仪式感）
- * 这是"只播一次"与"每次都播"之间的折中。想改成只播一次，
- * 把两处 sessionStorage 换成 localStorage 即可。
+ * 想改成只播一次，把 sessionStorage 换成 localStorage 即可。
+ *
+ * 注意：这里**只判断、不写标记**。标记由 FirstVisitIntro 真正挂载时写入，
+ * 这样"直接打开 /login"的人不会被记为已看过，之后正常进落地页还能看到开场。
  */
 const INTRO_BOOTSTRAP = `(function(){try{
 var m=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var seen=window.sessionStorage.getItem('dut:intro-seen');
-if(seen||m){document.documentElement.dataset.intro='off';return}
-document.documentElement.dataset.intro='1';
-window.sessionStorage.setItem('dut:intro-seen','1');
+document.documentElement.dataset.intro=(!seen&&!m)?'1':'off';
 }catch(e){document.documentElement.dataset.intro='off'}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -41,10 +40,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_BOOTSTRAP }} />
       </head>
-      <body className="min-h-full flex flex-col">
-        <FirstVisitIntro />
-        {children}
-      </body>
+      {/* 开场序列不放在这里：它只在落地页播。
+          放在 root layout 会导致「第一次访问 /login 也先播 2.4 秒校徽」，
+          用户还没进应用就被拦住。 */}
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

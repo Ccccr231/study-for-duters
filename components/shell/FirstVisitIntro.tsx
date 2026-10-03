@@ -30,6 +30,14 @@ export function FirstVisitIntro() {
     // 不是本次要播（已看过 / 减弱动效），无需定时器——CSS 已经把它藏起来了
     if (document.documentElement.dataset.intro !== "1") return;
 
+    // 真正播了才写标记。写在挂载时、而不是首帧脚本里：
+    // 否则"直接打开 /login"的人会被记为已看过，之后进落地页就看不到开场了。
+    try {
+      window.sessionStorage.setItem("dut:intro-seen", "1");
+    } catch {
+      // 隐私模式下 sessionStorage 可能不可用：照常播这一次即可
+    }
+
     // 动画结束后卸载，避免一个全屏 fixed 层长期占着合成层
     const unmountTimer = window.setTimeout(() => setDone(true), DURATION_MS + 100);
     return () => window.clearTimeout(unmountTimer);

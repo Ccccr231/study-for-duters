@@ -1,4 +1,8 @@
-// 实测开场序列的两种情形：干净浏览器（应播）与已看过的浏览器（不应播）
+// 验证开场序列的播放位置：
+// 1) 落地页首次进入 → 播
+// 2) 直接打开 /login → **不播**（用户还没进应用，不该被拦 2.4 秒）
+// 3) 播过之后会话内再进落地页 → 不播
+// 4) 直接打开 /login 后，再进落地页 → 仍应播（/login 不该把标记写掉）
 import { createRequire } from "node:module";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -13,51 +17,46 @@ mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: CHROME, headless: true });
 
-// 情形 A：全新浏览器（无 localStorage）
+const probe = (page) =>
+  page.evaluate(() => {
+    const el = document.querySelector(".intro");
+    return {
+      dataIntro: document.documentElement.dataset.intro,
+      introVisible: !!el && getComputedStyle(el).display !== "none",
+      seen: sessionStorage.getItem("dut:intro-seen"),
+    };
+  });
+
+// 1) 全新会话打开落地页
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   await page.goto(`${BASE}/`, { waitUntil: "commit" });
-  await page.waitForTimeout(700);
-  const st = await page.evaluate(() => {
-    const el = document.querySelector(".intro");
-    const em = document.querySelector(".intro-emblem");
-    return {
-      dataIntro: document.documentElement.dataset.intro,
-      hasIntroEl: !!el,
-      introDisplay: el ? getComputedStyle(el).display : null,
-      emblemTransform: em ? getComputedStyle(em).transform : null,
-      emblemFilter: em ? getComputedStyle(em).filter : null,
-      seen: localStorage.getItem("dut:intro-seen"),
-      anims: document.getAnimations().filter((a) => a.playState === "running").length,
-    };
-  });
-  console.log("【全新浏览器 700ms】", JSON.stringify(st));
-  await page.screenshot({ path: `${OUT}A-fresh-700ms.png` });
+  await page.waitForTimeout(600);
+  console.log("1) 全新会话打开落地页:", JSON.stringify(await probe(page)));
+  await page.screenshot({ path: `${OUT}1-landing-fresh.png` });
+
+  // 3) 同会话再进落地页
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+  console.log("3) 同会话再进落地页:", JSON.stringify(await probe(page)));
   await ctx.close();
 }
 
-// 情形 B：已看过（localStorage 有标记）
+// 2) 全新会话直接打开 /login
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  await ctx.addInitScript(() => {
-    try {
-      localStorage.setItem("dut:intro-seen", "1");
-    } catch {}
-  });
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
-  await page.waitForTimeout(400);
-  const st = await page.evaluate(() => {
-    const el = document.querySelector(".intro");
-    return {
-      dataIntro: document.documentElement.dataset.intro,
-      hasIntroEl: !!el,
-      introDisplay: el ? getComputedStyle(el).display : null,
-    };
-  });
-  console.log("【已看过】", JSON.stringify(st));
-  await page.screenshot({ path: `${OUT}B-seen.png` });
+  await page.goto(`${BASE}/login`, { waitUntil: "commit" });
+  await page.waitForTimeout(600);
+  console.log("2) 全新会话直接打开 /login:", JSON.stringify(await probe(page)));
+  await page.screenshot({ path: `${OUT}2-login-fresh.png` });
+
+  // 4) 同一会话再进落地页 —— 应该仍然播（/login 不该写标记）
+  await page.goto(`${BASE}/`, { waitUntil: "commit" });
+  await page.waitForTimeout(600);
+  console.log("4) 从 /login 再进落地页:", JSON.stringify(await probe(page)));
+  await page.screenshot({ path: `${OUT}4-landing-after-login.png` });
   await ctx.close();
 }
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Emblem } from "@/components/dut/Emblem";
 import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
 import { WaveDivider } from "@/components/dut/WaveDivider";
+import { FirstVisitIntro } from "@/components/shell/FirstVisitIntro";
 import { currentUser } from "@/lib/auth/session";
 
 const FEATURES = [
@@ -26,6 +27,9 @@ export default async function Home() {
 
   return (
     <main className="flex flex-1 flex-col bg-white">
+      {/* 开场序列只在落地页播（首次进入 / 每会话一次）。
+          放这里而不是 root layout：否则第一次访问 /login 也会先播 2.4 秒校徽。 */}
+      <FirstVisitIntro />
       {/* hero：移动端居中成塔，桌面端改为左文右图的分栏——
           否则 1280px 宽下会缩成一条居中的窄色带，左右全是空。 */}
       <section className="relative overflow-hidden bg-dut px-6 pt-14 pb-12 text-white sm:pt-20 sm:pb-16">
@@ -83,7 +87,9 @@ export default async function Home() {
         </ul>
 
         {/* 一天的节奏：把四个功能翻译成"你的一天"，情绪价值落在这里——
-            功能列表说服理性，日常叙事才让人想用。 */}
+            功能列表说服理性，日常叙事才让人想用。
+            宽度与上面的卡片栅格一致（不再用 sm:max-w-lg 收窄），
+            否则两条左边缘不齐，在平板宽度下尤其明显。 */}
         <section className="w-full">
           <h2 className="text-center text-sm font-medium tracking-tight text-ink">
             在大工的每一天
@@ -92,7 +98,7 @@ export default async function Home() {
             凌水河边的四年，值得被认真记下来
           </p>
 
-          <ol className="mt-6 flex w-full flex-col gap-0 sm:mx-auto sm:max-w-lg">
+          <ol className="mt-6 flex w-full flex-col gap-0">
             {RHYTHM.map(([when, title, desc, color], i) => (
               <li key={when} className="relative flex gap-4 pb-6 last:pb-0">
                 {/* 时间轴：竖线 + 节点。最后一个不画线，避免尾巴悬空 */}
