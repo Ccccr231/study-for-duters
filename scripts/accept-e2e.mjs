@@ -99,9 +99,50 @@ try {
   check("打卡落库（连续天数 = 1）", streak === "1", `当前连续天数 ${streak}`);
   await page.screenshot({ path: `${SHOTS}03-checkin.png` });
 
-  // 7. 番茄钟页可打开
+  // 7. 专注（番茄钟）：完整走一遍「开始 → 暂停 → 结束并记录」与「放弃」两条路径。
+  //    重点验服务端对 duration 的钳制：前端根本不传 duration，服务端按 startedAt 自己算，
+  //    所以刚开就结束必须落到下限 MIN_SESSION_MINUTES(1)，而不是 0。
+  //    注意一个产品语义（代码现状，不是本脚本的判定）：手动「结束并记录」写入的是
+  //    completed=false，而 /focus 的「今日累计」与连小理 prompt 的 focusMinutesToday
+  //    都只统计 completed=true（见 app/(app)/focus/page.tsx 与 app/api/chat/route.ts）。
+  //    也就是说：点了「结束并记录」会留下一条记录，但**不会**计入今日累计。
+  //    只有真正走完 25/45 分钟（计时归零 → finish(true)）才算数。
+  //    这是刻意设计还是口径不一致，由所有者确认；本脚本按现状断言，不改语义。
   await page.goto(`${BASE}/focus`, { waitUntil: "domcontentloaded" });
   check("番茄钟页可打开", (await page.locator("body").innerText()).length > 0);
+
+  const { rows: uidRows } = await db.query(`SELECT id FROM "User" WHERE email = $1`, [email]);
+  const uid = uidRows[0]?.id;
+  const sessionCount = async () =>
+    (await db.query(`SELECT count(*)::int AS n FROM "PomodoroSession" WHERE "userId" = $1`, [uid]))
+      .rows[0].n;
+
+  // 7a. 开始 → 暂停 → 结束并记录
+  await page.getByRole("button", { name: "开始", exact: true }).click();
+  await page.getByRole("button", { name: "暂停", exact: true }).waitFor({ timeout: 20000 });
+  await page.getByRole("button", { name: "暂停", exact: true }).click();
+  await page.getByRole("button", { name: "结束并记录" }).click();
+  await page.getByRole("button", { name: "开始", exact: true }).waitFor({ timeout: 25000 });
+  const afterEnd = await sessionCount();
+  const { rows: sess } = await db.query(
+    `SELECT duration, completed FROM "PomodoroSession"
+      WHERE "userId" = $1 ORDER BY "startedAt" DESC LIMIT 1`,
+    [uid],
+  );
+  check(
+    "专注：结束并记录落库，时长被服务端钳制到下限 1 分钟",
+    afterEnd === 1 && sess[0]?.duration === 1 && sess[0]?.completed === false,
+    `行数=${afterEnd} duration=${sess[0]?.duration} completed=${sess[0]?.completed}`,
+  );
+
+  // 7b. 放弃 → 不留脏数据（reset 只清前端引用，不应写库）
+  await page.getByRole("button", { name: "开始", exact: true }).click();
+  await page.getByRole("button", { name: "放弃", exact: true }).waitFor({ timeout: 20000 });
+  await page.getByRole("button", { name: "放弃", exact: true }).click();
+  await page.getByRole("button", { name: "开始", exact: true }).waitFor({ timeout: 20000 });
+  const afterAbandon = await sessionCount();
+  check("专注：放弃不落库（无脏数据）", afterAbandon === 1, `行数=${afterAbandon}`);
+  await page.screenshot({ path: `${SHOTS}07-focus.png` });
 
   // 8. §9 第 8 项：未配置模型时的正确降级（这是预期行为，不是故障）
   await page.goto(`${BASE}/chat`, { waitUntil: "domcontentloaded" });
@@ -142,9 +183,7 @@ try {
   );
   await page.screenshot({ path: `${SHOTS}06-knowledge-ask-disabled.png` });
 
-  // 11. 数据库侧交叉核对
-  const { rows: u } = await db.query(`SELECT id FROM "User" WHERE email = $1`, [email]);
-  const uid = u[0]?.id;
+  // 11. 数据库侧交叉核对（uid 已在第 7 步取过，直接复用）
   const { rows: counts } = await db.query(
     `SELECT
        (SELECT count(*) FROM "Plan"     WHERE "userId" = $1) AS plans,
@@ -152,17 +191,19 @@ try {
        (SELECT count(*) FROM "Task"     WHERE "userId" = $1 AND done) AS done_tasks,
        (SELECT count(*) FROM "CheckIn"  WHERE "userId" = $1) AS checkins,
        (SELECT count(*) FROM "Document" WHERE "userId" = $1) AS docs,
+       (SELECT count(*) FROM "PomodoroSession" WHERE "userId" = $1) AS sessions,
        (SELECT count(*) FROM "Report"   WHERE "userId" = $1) AS reports`,
     [uid],
   );
   const c = counts[0];
   check(
-    "DB 核对：计划1 任务2 完成1 打卡1 资料1",
+    "DB 核对：计划1 任务2 完成1 打卡1 资料1 专注1",
     Number(c.plans) === 1 &&
       Number(c.tasks) === 2 &&
       Number(c.done_tasks) === 1 &&
       Number(c.checkins) === 1 &&
-      Number(c.docs) === 1,
+      Number(c.docs) === 1 &&
+      Number(c.sessions) === 1,
     JSON.stringify(c),
   );
 
