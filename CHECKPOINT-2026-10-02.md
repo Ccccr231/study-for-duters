@@ -1,15 +1,33 @@
 # 存档 · 下次说「开始」即可直接开工
 
-> 存档时间：2026-10-02 23:00（UTC+8）
-> 仓库：`Ccccr231/study-for-duters`（PRIVATE）· HEAD `2a3f752` · 21 个 commit · 工作区干净
+> 存档时间：2026-10-03 08:30（UTC+8）
+> 仓库：`Ccccr231/study-for-duters`（PRIVATE）· HEAD `f1f97ad` · 30 个 commit · 工作区干净
 > 本地与远端完全一致。
 
 ---
 
 ## 0. 一句话现状
 
-**功能完整、验证通过、UI 已完成三轮提升 + 校徽开场序列；线上未部署**（Vercel 路线因账号受限放弃，改走阿里云自托管，脚本已备好）。
-目标仍 active（已用 2/12 轮），下一轮做**字号阶梯 token 化**与**页面切换动效**。
+**功能完整、验证通过、UI 已完成五轮提升（含校徽开场序列、官方/二创素材、字号阶梯）；线上未部署**
+（Vercel 路线因账号受限放弃，改走阿里云自托管，脚本已备好）。
+
+**⚠️ 当前有一个待你拍板的功能缺口（见 §2 ①）：知识库只收 Markdown。**
+
+---
+
+## 0.1 最近的 UI 轮次（都有 commit）
+
+| commit | 内容 |
+|---|---|
+| `1a1d7e9` | 路由入场过渡（并撤掉一套无效的 React `<ViewTransition>` 实现）+ 完成反馈 + 开场改每会话一次 |
+| `f1f97ad` | 开场序列只在落地页播（不再拦在 `/login` 前）+ 平板断点对齐 |
+
+其中两条经验值得记住：
+- **Next 文档推荐的 React `<ViewTransition>` 在本项目不可用**：`react@19.2.8` 里
+  `typeof ViewTransition === 'undefined'`（实测），那需要 canary。已换成
+  `pathname` 作 key 的路由级入场动画，并实测「`router.refresh()` 不重放」。
+- **调试截图时注意开场层**：全新 browser context 必然触发 2.4s 开场，
+  截图脚本必须先等 `.intro` 消失（`shots.mjs` / `tablet-shots.mjs` 已内置 `waitIntroDone`）。
 
 ---
 
@@ -42,7 +60,36 @@ $node = "C:\Users\chenr\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\
 
 ## 2. 进度
 
-### ① ~~替换主楼剪影 + 玉兰为官方/二创素材~~ ✅ 2026-10-03 完成（`53c4206`）
+### ① ⚠️ **待你拍板：知识库只收 Markdown，普通学生没法用**（2026-10-03 用户提出）
+
+用户原话：*"难道企图让一般的学生会把资料转成 markdown？肯定是支持 pdf word ppt 这种啊"* —— **批评成立**。
+
+现状：`components/knowledge/KnowledgePanel.tsx` 的 `ACCEPT = ".md,.markdown,.txt,..."`，
+标题写「上传资料（Markdown）」，`app/api/knowledge/ingest/route.ts` 按 `text/markdown` 入库。
+
+**根因是决策过期**：`PLAN §2` 只收 `.md` 的理由是
+「`pdf-parse` 在 **Vercel 免费层**（函数 60s 超时）解析大文件容易超时」——
+而项目后来已改为**阿里云自托管**，这个约束早就不成立，但没人回来拆掉它。
+
+用户实际会传的格式（查其 `study-materials` 仓库）：**.pdf 37 个、.xlsx 15 个、.docx/.doc 2 个、.md 仅 1 个**。
+
+**建议方案（已与用户说明，待确认）**：**客户端解析**，把纯文本发给服务端入库。
+| | 客户端解析 | 服务端解析 |
+|---|---|---|
+| 超时限制 | 无 | 大 PDF 仍可能超时 |
+| 服务器内存 | 不占 | 50MB PDF 有风险 |
+| 进度反馈 | 能显示"第 12/40 页" | 只能干等 |
+
+- PDF → `pdfjs-dist`（ESM 更现代，优于老旧的 `pdf-parse`）
+- DOCX → `mammoth`；PPTX / XLSX → `jszip` + 解析 XML
+- **必须如实提示**：扫描版 PDF（拍照/影印）没有文字层，取不出文字，需 OCR
+- 解析库约 1–2MB，**只在用户选文件时懒加载**，不影响其他页面
+- 会改动 `PLAN §2` 的 MVP 边界 → 需在 `PLAN §14` 记偏差
+
+> 用户尚未回答「全做还是先只做 PDF」。下次开工若无新指示，按**先只做 PDF** 推进
+> （最刚需、收益最大），Office 系列随后。
+
+### ② ~~替换主楼剪影 + 玉兰为官方/二创素材~~ ✅ 2026-10-03 完成（`53c4206`）
 
 用户提供了水彩画稿（玉兰在左上、主楼在右下，米色纸底）。**试了三版才抠对**，
 这段经验记下来，以后处理类似素材不必再走弯路：
