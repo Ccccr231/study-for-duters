@@ -49,7 +49,13 @@ execFileSync("git", [
 const kb = (statSync(tarPath).size / 1024).toFixed(0);
 
 // 校验关键文件都在（少一个都可能在服务器上装不起来）
-const entries = execFileSync("tar", ["-tzf", tarPath], { encoding: "utf8" }).split("\n");
+// ⚠️ 必须同时去掉 \r 和空行：Windows 的 tar 输出是 CRLF，
+//    只 split('\n') 会让每个条目带一个 \r，导致 includes() 全部匹配失败
+//    （第一次就是这么误报"压缩包缺少关键文件"的）。
+const entries = execFileSync("tar", ["-tzf", tarPath], { encoding: "utf8" })
+  .split(/\r?\n/)
+  .map((l) => l.trim())
+  .filter(Boolean);
 const prefix = `study-for-duters-${short}/`;
 const REQUIRED = [
   "package.json",
