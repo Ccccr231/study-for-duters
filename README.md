@@ -54,6 +54,25 @@ pnpm dev                  # http://localhost:3000
 | `node scripts/nojs-check.mjs` | **禁用 JS** 时核心流程是否可用（注册/打卡/建计划真的落库） |
 | `node scripts/skeleton-check.mjs` | 无 JS 时各页面是否只剩骨架屏（这类问题肉眼看不出来） |
 | `node scripts/mobile-check.mjs` | 移动端审计 8 项（安全区 / 点按延迟 / iOS 缩放 / hover 粘住） |
+| `node scripts/a11y-check.mjs` | 可访问性审计（ARIA 名称 / 标题层级 / alt / 键盘焦点）+ 首屏性能实测 |
+| `node scripts/contrast-check.mjs` | 逐个文字算 WCAG 对比度（**含半透明叠层的 alpha 合成**） |
+
+## 可访问性与首屏性能（实测）
+
+`a11y-check.mjs` **11/11**、`contrast-check.mjs` **156 处文字 0 不达标**。
+性能在 4G（150ms RTT / 4Mbps）+ CPU 4× 降速下实测：
+
+| 指标 | 实测 |
+|---|---|
+| FCP | **~820ms** |
+| DOMContentLoaded / load | ~810ms / ~1335ms |
+| 首屏 JS | **137KB**（10 个文件，压缩后） |
+| 首屏 CSS / 请求数 | 7KB / 28 个 |
+
+对比度要点：`--dut-muted` 原为 `#6b7280`，在浅蓝底上只有 **4.24:1（不达 AA 的 4.5:1）**，
+已加深为 `#525A66`（各处 6.11–6.97:1）。
+**评估时必须对 `bg-dut-mist/60` 这类半透明叠层做 alpha 合成** ——
+否则会把合成后的 `#f1f7fd` 误当成白纸而漏判。
 
 ## 移动端（手机上像不像原生应用）
 
