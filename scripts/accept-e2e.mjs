@@ -227,6 +227,41 @@ try {
     `validity.tooShort=${tooShort}，仍在 /register=${stillOnRegister}，建号数=${leaked[0].n}`,
   );
 
+  // 17. 已登录遍历全部页面：既不能 500，也不能悄悄落到错误边界
+  //     （上一轮就吃过亏：错误边界页 HTTP 仍是 200，只看状态码会漏判）
+  const ROUTES = [
+    "/today",
+    "/plans",
+    "/focus",
+    "/checkin",
+    "/chat",
+    "/knowledge",
+    "/reports",
+    "/settings/model",
+  ];
+  const broken = [];
+  for (const r of ROUTES) {
+    const resp = await page.goto(`${BASE}${r}`, { waitUntil: "domcontentloaded" });
+    const status = resp?.status() ?? 0;
+    const text = await page.locator("body").innerText();
+    if (status >= 500 || text.includes("页面渲染失败了")) broken.push(`${r}(HTTP ${status})`);
+    await page.waitForTimeout(300);
+  }
+  check(
+    `全部 ${ROUTES.length} 个页面无 500、无错误边界`,
+    broken.length === 0,
+    broken.length ? broken.join(", ") : "均正常",
+  );
+
+  // 18. 不存在的路由 → 应落到 404 页，而不是崩溃或 500
+  const nf = await page.goto(`${BASE}/no-such-page-xyz`, { waitUntil: "domcontentloaded" });
+  const nfText = await page.locator("body").innerText();
+  check(
+    "不存在的路由显示 404 页而非崩溃",
+    nfText.includes("这一页不存在") && (nf?.status() ?? 0) < 500,
+    `HTTP ${nf?.status()}`,
+  );
+
   await anon.close();
 } catch (err) {
   check("脚本执行未抛异常", false, String(err).split("\n")[0]);
