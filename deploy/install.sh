@@ -2,18 +2,35 @@
 # Study for DUTERS · 服务器一键部署（Ubuntu 22.04 / 24.04，无域名、IP + 端口访问）
 #
 # 用法（在服务器上以 root 运行）：
-#   若仓库已转 public：
+#
+#   【推荐】打包上传（仓库保持私有，服务器上不需要任何 GitHub 凭据）
+#     本地：node scripts/pack-deploy.mjs        # 生成 deploy-<sha>.tar.gz
+#     上传：scp deploy-<sha>.tar.gz root@<公网IP>:/root/
+#     服务器：
+#       mkdir -p /opt/study-for-duters-src
+#       tar -xzf /root/deploy-<sha>.tar.gz -C /opt/study-for-duters-src --strip-components=1
+#       sudo bash /opt/study-for-duters-src/deploy/install.sh
+#     （脚本会自动发现同级的 package.json，把这份代码同步到 /opt/study-for-duters）
+#
+#   【已转 public】curl 下载后跑，脚本会自己 clone
 #     curl -fsSL https://raw.githubusercontent.com/Ccccr231/study-for-duters/main/deploy/install.sh -o install.sh
-#   若仓库仍是 private：用 scp 从本地上传，或在服务器上用带 token 的地址 clone 后取本文件。
-#   然后： sudo bash install.sh
+#     sudo bash install.sh
+#
+#   【已在服务器上 clone 过】直接重跑，脚本会 git pull
+#     sudo bash /opt/study-for-duters/deploy/install.sh
 #
 # 脚本会做：
 #   1. 装 Node.js 22 + pnpm
-#   2. 拉代码到 /opt/study-for-duters
+#   2. 获取代码到 /opt/study-for-duters（三种来源自动判断，见第 2 步注释）
 #   3. 生成 .env（DATABASE_URL 需要你填，AUTH_SECRET 自动生成）
 #   4. pnpm install + prisma generate + next build
 #   5. 注册 systemd 服务（开机自启、崩溃自动重启）
 #   6. 开放防火墙端口
+#
+# ⚠️ 本脚本**不会**建数据库表，装完还要跑一次迁移（见 DEPLOY-HANDOFF.md §3.2）：
+#     cd /opt/study-for-duters && pnpm exec prisma migrate deploy
+#     （失败则 node scripts/apply-migration.mjs）
+#    然后：node scripts/check-db.mjs   # 自检
 #
 # 幂等：重复运行会更新代码并重建，不会重复装 Node / 重复注册服务。
 set -euo pipefail
@@ -42,12 +59,47 @@ fi
 command -v pnpm >/dev/null 2>&1 || npm install -g pnpm
 echo "  node $(node -v) / pnpm $(pnpm -v)"
 
-# ---------- 2. 拉代码 ----------
+# ---------- 2. 获取代码 ----------
+# 代码有三种来源，按优先级自动判断（命令行可用 SFD_SOURCE=<路径> 强制指定）：
+#   1) SFD_SOURCE / 脚本同级目录里有 package.json → 用**已上传的代码**
+#      （推荐：scp / 打包上传，仓库保持私有，不需要在服务器上放任何 GitHub 凭据）
+#   2) /opt/study-for-duters/.git 存在 → 从 git 拉取更新
+#   3) 都没有 → 首次 clone（**仓库若仍是私有，此步会失败**，请改用方式 1）
 log "获取代码到 ${APP_DIR}"
-if [ -d "${APP_DIR}/.git" ]; then
+
+SOURCE_DIR="${SFD_SOURCE:-}"
+if [ -z "${SOURCE_DIR}" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -f "${SCRIPT_DIR}/package.json" ]; then
+    SOURCE_DIR="${SCRIPT_DIR}"
+  fi
+fi
+
+if [ -n "${SOURCE_DIR}" ] && [ -f "${SOURCE_DIR}/package.json" ]; then
+  echo "  代码来源：已上传的目录 ${SOURCE_DIR}"
+  if [ "${SOURCE_DIR}" = "${APP_DIR}" ]; then
+    echo "  源目录就是 ${APP_DIR}，原地使用，不做拷贝"
+  else
+    mkdir -p "${APP_DIR}"
+    # --delete 让目标与上传内容完全一致（否则被删掉的文件会残留）
+    if command -v rsync >/dev/null 2>&1; then
+      rsync -a --delete --exclude '.env' --exclude 'node_modules' --exclude '.next' \
+        "${SOURCE_DIR}/" "${APP_DIR}/"
+    else
+      # 没装 rsync 时的退路：先清掉旧代码（保留 .env 与依赖缓存）
+      find "${APP_DIR}" -mindepth 1 -maxdepth 1 \
+        ! -name '.env' ! -name 'node_modules' ! -name '.next' -exec rm -rf {} +
+      cp -a "${SOURCE_DIR}/." "${APP_DIR}/"
+    fi
+    echo "  已同步到 ${APP_DIR}"
+  fi
+elif [ -d "${APP_DIR}/.git" ]; then
+  echo "  代码来源：git（${APP_DIR} 已是仓库）"
   git -C "${APP_DIR}" fetch --all -q
   git -C "${APP_DIR}" reset --hard origin/main -q
 else
+  echo "  代码来源：git clone（首次）"
+  echo "  ⚠️ 若仓库仍是私有，这一步会因无凭据而失败 —— 请改用打包上传（见 DEPLOY-HANDOFF.md §3.1 方案 A）"
   mkdir -p "$(dirname "${APP_DIR}")"
   git clone -q "${REPO}" "${APP_DIR}"
 fi
