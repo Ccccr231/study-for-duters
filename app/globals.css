@@ -65,9 +65,12 @@
   --text-stat: 28px; /* 数字展示：统计值 */
   --text-stat--line-height: 1.1;
   --text-stat--letter-spacing: -0.02em;
-  --text-display: 36px; /* 展示级：hero 标题、计时器 */
+  --text-display: 36px; /* 展示级：hero 标题 */
   --text-display--line-height: 1.15;
   --text-display--letter-spacing: -0.02em;
+  --text-hero: 40px; /* hero 大标题（≥640px） */
+  --text-hero--line-height: 1.1;
+  --text-hero--letter-spacing: -0.02em;
 }
 
 /* 覆盖 Tailwind 默认的两个字号刻度，把它们纳入同一条阶梯：

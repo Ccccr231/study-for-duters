@@ -16,7 +16,7 @@ export default function GlobalError({
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 bg-surface px-6 py-16">
-      <p className="text-lg font-medium text-ink">出了点问题</p>
+      <p className="text-title font-medium text-ink">出了点问题</p>
       <p className="text-sm text-muted">页面渲染失败了，你的数据没有受影响。</p>
       <button
         onClick={reset}

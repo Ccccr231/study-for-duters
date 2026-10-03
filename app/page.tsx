@@ -51,7 +51,7 @@ export default async function Home() {
           <Emblem className="h-16 w-16 sm:hidden" />
           {/* 大字号要负字距（字越大越显松）；这是拉丁字母标题，收一点就够。
               中文副标题用 text-balance，避免在「复 / 盘」这种字中间断行。 */}
-          <h1 className="text-stat leading-tight font-medium tracking-[-0.01em] sm:text-4xl">
+          <h1 className="text-display font-medium sm:text-hero">
             Study for DUTERS
           </h1>
           <p className="max-w-md text-sm text-balance text-white/85 sm:text-body">

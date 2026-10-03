@@ -81,23 +81,27 @@ export default async function ReportsPage() {
 
       <section className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">{metrics.focusMinutesToday}</p>
+          <p className="text-stat font-medium tabular-nums text-dut-deep">{metrics.focusMinutesToday}</p>
           <p className="text-xs text-muted">今日专注（分钟 · {metrics.pomodorosToday} 个番茄）</p>
         </div>
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">{metrics.focusMinutes7d}</p>
+          <p className="text-stat font-medium tabular-nums text-dut-deep">{metrics.focusMinutes7d}</p>
           <p className="text-xs text-muted">近 7 天专注（分钟）</p>
         </div>
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">
-            {metrics.completionRate7d === null
-              ? "—"
-              : `${metrics.doneTasks7d}/${metrics.dueTasks7d}`}
+          <p className="text-stat font-medium tabular-nums text-dut-deep">
+            {metrics.completionRate7d === null ? (
+              // 窗口内没有到期任务时显示"暂无"，而不是孤零零一个破折号
+              // ——破折号看起来像加载失败，也不解释原因
+              <span className="text-title font-normal text-muted">暂无</span>
+            ) : (
+              `${metrics.doneTasks7d}/${metrics.dueTasks7d}`
+            )}
           </p>
           <p className="text-xs text-muted">近 7 天到期任务完成</p>
         </div>
         <div className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <p className="text-2xl font-medium tracking-tight tabular-nums text-dut-deep">{metrics.streakDays}</p>
+          <p className="text-stat font-medium tabular-nums text-dut-deep">{metrics.streakDays}</p>
           <p className="text-xs text-muted">连续打卡（天）</p>
         </div>
       </section>

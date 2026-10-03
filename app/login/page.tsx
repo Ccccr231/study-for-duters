@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       <WaveDivider className="h-12 w-full" />
 
       <div className="mx-auto w-full max-w-md px-6 pb-16">
-        <h2 className="mb-5 text-lg font-medium text-ink">登录</h2>
+        <h2 className="mb-5 text-title font-medium text-ink">登录</h2>
         <AuthForm mode="login" next={target} />
         <p className="mt-6 text-center text-sm text-muted">
           还没有账号？
