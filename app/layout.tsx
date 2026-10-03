@@ -20,14 +20,19 @@ export const viewport: Viewport = {
 /**
  * 在首帧之前决定要不要播开场序列，避免"先渲染再隐藏"的闪烁。
  * 必须阻塞执行（不能 defer/async），这也是 Next 官方推荐的防闪模式。
- * 标记键要与 FirstVisitIntro.tsx 里的 SEEN_KEY 保持一致。
+ *
+ * 用 sessionStorage 而不是 localStorage：**每个标签页会话播一次**。
+ * - 会话内刷新 / 切页面 → 不再播（否则每次刷新都等 2.4 秒就成阻碍了）
+ * - 关掉标签页重新打开、或开新标签 → 再播一次（保留仪式感）
+ * 这是"只播一次"与"每次都播"之间的折中。想改成只播一次，
+ * 把两处 sessionStorage 换成 localStorage 即可。
  */
 const INTRO_BOOTSTRAP = `(function(){try{
 var m=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-var seen=window.localStorage.getItem('dut:intro-seen');
+var seen=window.sessionStorage.getItem('dut:intro-seen');
 if(seen||m){document.documentElement.dataset.intro='off';return}
 document.documentElement.dataset.intro='1';
-window.localStorage.setItem('dut:intro-seen','1');
+window.sessionStorage.setItem('dut:intro-seen','1');
 }catch(e){document.documentElement.dataset.intro='off'}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

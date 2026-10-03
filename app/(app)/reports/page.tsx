@@ -73,7 +73,7 @@ export default async function ReportsPage() {
   const suggestions = todayReport ? extractActions(todayReport.stats) : [];
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <div>
         <h1 className="text-xl font-medium tracking-tight text-ink">学习报告</h1>
         <p className="mt-1 text-xs text-muted">{formatChineseDate(today)}</p>

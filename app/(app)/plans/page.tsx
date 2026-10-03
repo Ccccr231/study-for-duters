@@ -23,7 +23,7 @@ export default async function PlansPage() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <h1 className="text-xl font-medium tracking-tight text-ink">学习计划</h1>
 
       <form
@@ -60,7 +60,7 @@ export default async function PlansPage() {
             <li key={plan.id}>
               <Link
                 href={`/plans/${plan.id}`}
-                className="block rounded-xl bg-white p-4 ring-1 ring-line"
+                className="tap block rounded-xl bg-white p-4 ring-1 ring-line"
               >
                 <div className="flex items-center justify-between">
                   <h2 className="text-body font-medium text-ink">{plan.title}</h2>

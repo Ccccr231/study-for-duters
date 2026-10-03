@@ -14,7 +14,7 @@ export default async function TodayPage() {
   const user = await requireUser();
   const today = startOfToday();
 
-  const [tasks, sessions, lastCheckIn, activePlan] = await Promise.all([
+  const [tasks, sessions, lastCheckIn, activePlan, doneToday] = await Promise.all([
     prisma.task.findMany({
       where: { userId: user.id, done: false },
       orderBy: { sortOrder: "asc" },
@@ -35,6 +35,8 @@ export default async function TodayPage() {
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true },
     }),
+    // 待办清空时要区分「都做完了」和「本来就没建」——前者值得一句肯定
+    prisma.task.count({ where: { userId: user.id, done: true } }),
   ]);
 
   const focusMinutes = sessions.reduce((sum, s) => sum + s.duration, 0);
@@ -114,11 +116,25 @@ export default async function TodayPage() {
           </div>
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-6">
-              <MagnoliaArt className="h-10 w-10" />
-              <p className="text-sm text-muted">今天还没安排任务</p>
-              <Link href="/plans" className="tap text-sm text-dut">
-                去建一个学习计划
-              </Link>
+              <MagnoliaArt className="h-12 w-12" />
+              {/* 待办清空有两种原因，说法要分清：
+                  真有任务且都做完了 → 是成就，值得一句好话；
+                  一个任务都没建 → 才是引导。 */}
+              {doneToday > 0 ? (
+                <>
+                  <p className="text-body font-medium text-ink">今天的活儿干完了</p>
+                  <p className="text-caption text-muted">
+                    今天完成了 {doneToday} 项，连续 {streak} 天没断。
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted">今天还没安排任务</p>
+                  <Link href="/plans" className="tap text-sm text-dut">
+                    去建一个学习计划
+                  </Link>
+                </>
+              )}
             </div>
           ) : (
             <TodayTasks tasks={tasks} />

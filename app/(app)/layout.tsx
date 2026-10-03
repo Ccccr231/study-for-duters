@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/shell/BottomNav";
+import { RouteTransition } from "@/components/shell/RouteTransition";
 import { logoutAction } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth/session";
 
@@ -44,7 +45,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1">{children}</main>
+      {/* 路由级入场过渡：pathname 变就重挂载并播一次上浮淡入。
+          放在 layout 一处生效、覆盖全部子页面；
+          router.refresh()（打卡/勾选任务后刷新数据）不改 pathname，所以不会重放。 */}
+      <main className="flex-1">
+        <RouteTransition>{children}</RouteTransition>
+      </main>
       <BottomNav />
     </div>
   );

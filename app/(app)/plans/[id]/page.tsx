@@ -36,10 +36,10 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
   const doneCount = plan.tasks.filter((t) => t.done).length;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
-      <Link href="/plans" className="text-sm text-muted">
-        ← 返回
-      </Link>
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
+        <Link href="/plans" className="tap text-sm text-muted">
+          ← 返回
+        </Link>
 
       <div>
         <h1 className="text-xl font-medium tracking-tight text-ink">{plan.title}</h1>
@@ -82,8 +82,8 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
                 <button
                   type="submit"
                   aria-label={task.done ? "标记为未完成" : "标记为完成"}
-                  className={`tap h-5 w-5 shrink-0 rounded-full border transition-colors duration-150 ${
-                    task.done ? "border-jade bg-jade" : "border-line hover:border-dut"
+                  className={`tap check-circle h-5 w-5 shrink-0 rounded-full border transition-colors duration-150 ${
+                    task.done ? "check-pop border-jade bg-jade" : "border-line hover:border-dut"
                   }`}
                 />
                 <span

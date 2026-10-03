@@ -26,7 +26,7 @@ export default async function FocusPage() {
   const minutes = sessions.reduce((sum, s) => sum + s.duration, 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-5 px-5 py-6">
+      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-5 px-5 py-6">
       <div className="flex w-full items-center justify-between">
         <h1 className="text-xl font-medium tracking-tight text-ink">专注</h1>
         <div className="text-right">

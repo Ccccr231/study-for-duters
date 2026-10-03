@@ -364,6 +364,56 @@ a {
   }
 }
 
+/* ---------------- 页面过渡 ---------------- */
+
+/* 说明：为什么不直接用 View Transitions API。
+   Next 文档推荐 React 的 <ViewTransition>，但那需要 React canary；
+   本项目 react@19.2.8 里 `typeof ViewTransition === 'undefined'`（实测），
+   写了也不会生效——所以改用**路由级入场动画**：
+   内容随 pathname 变化重新挂载并播一次入场，不依赖 React 未发布的 API。
+
+   顺带一个好处：`router.refresh()`（打卡、勾选任务后刷新数据）不会改 pathname，
+   所以**不会重放动画**，不会在用户操作后闪一下。 */
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.route-in {
+  animation: route-in 220ms var(--ease-out) both;
+}
+
+/* 勾选圆圈：按压时轻微缩小，给「按到了」的确认 */
+.check-circle:active {
+  scale: 0.9;
+}
+
+/* 任务完成：勾选后只剩变色会显得"没发生什么"。
+   加一次过冲回弹，让"完成"有一下明确的落点（会随页面重渲染自然重放）。 */
+@keyframes check-pop {
+  0% {
+    scale: 0.7;
+  }
+  55% {
+    scale: 1.18;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+.check-pop {
+  animation: check-pop 320ms var(--ease-out) both;
+}
+
+/* 大块行动按钮：按下时除了缩放，整体再压深一点，
+   给出"真的按进去了"的重量感（filter 只影响这一层，不触发重排）。 */
+.press:active {
+  filter: brightness(0.94);
+}
+
 /* ---------------- 无障碍降级 ---------------- */
 
 /* 底部导航的 tab：文字色与激活圆点一起过渡。
@@ -426,6 +476,20 @@ a {
   }
   .nav-dot {
     transition: opacity var(--dur-base) linear;
+  }
+
+  /* 页面过渡整体关掉：整页位移对前庭敏感人群最不友好，
+     而这种过渡只是"锦上添花"，关掉不损失任何信息 */
+  .route-in {
+    animation: none;
+  }
+
+  /* 勾选的过冲回弹对前庭敏感人群不友好；颜色变化已经足够表达"完成了" */
+  .check-pop {
+    animation: none;
+  }
+  .press:active {
+    filter: none;
   }
 
   /* 加载骨架的呼吸是唯一无限循环动画，降级成静态弱化块 */
