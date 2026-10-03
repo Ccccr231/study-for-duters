@@ -14,8 +14,10 @@ const TABS = [
 export function BottomNav() {
   const pathname = usePathname();
 
+  // safe-bottom / safe-x：把内容推离 iPhone 的 Home 指示条与横屏圆角，
+  // 否则最后一排 tab 会被指示条压住（配合 layout 的 viewportFit: "cover"）。
   return (
-    <nav className="sticky bottom-0 z-10 border-t border-line bg-white/95 backdrop-blur">
+    <nav className="safe-bottom safe-x sticky bottom-0 z-10 border-t border-line bg-white/95 backdrop-blur">
       <ul className="mx-auto flex w-full max-w-2xl sm:max-w-3xl">
         {TABS.map((tab) => {
           const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);

@@ -13,6 +13,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // 不要 maximumScale / userScalable: false —— 那会禁掉双指缩放，
+  // 对视力不佳的用户是实打实的伤害，而且 iOS 本来就忽略它。
+  // viewportFit: "cover" 让页面延伸到刘海/圆角区域，
+  // 再由 .safe-top / .safe-bottom 把内容推回安全区（见 globals.css）。
+  viewportFit: "cover",
   themeColor: "#1a5fb4",
 };
 

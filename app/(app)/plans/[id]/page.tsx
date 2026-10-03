@@ -83,7 +83,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
                   type="submit"
                   aria-label={task.done ? "标记为未完成" : "标记为完成"}
                   className={`tap check-circle h-5 w-5 shrink-0 rounded-full border transition-colors duration-150 ${
-                    task.done ? "check-pop border-jade bg-jade" : "border-line hover:border-dut"
+                    task.done ? "check-pop border-jade bg-jade" : "border-line hover-dut"
                   }`}
                 />
                 <span
@@ -99,7 +99,7 @@ export default async function PlanDetailPage({ params }: PageProps<"/plans/[id]"
                 <button
                   type="submit"
                   aria-label="删除任务"
-                  className="tap rounded-md px-1.5 py-1 text-xs text-muted/60 transition-colors duration-150 hover:text-amber"
+                  className="tap rounded-md px-1.5 py-1 text-xs text-muted/60 transition-colors duration-150 hover-amber"
                 >
                   删除
                 </button>

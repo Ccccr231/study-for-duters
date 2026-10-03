@@ -53,6 +53,21 @@ pnpm dev                  # http://localhost:3000
 | `node scripts/intro-state.mjs` | 开场序列在"新鲜/已看过/只开登录页"三种情形下的行为 |
 | `node scripts/nojs-check.mjs` | **禁用 JS** 时核心流程是否可用（注册/打卡/建计划真的落库） |
 | `node scripts/skeleton-check.mjs` | 无 JS 时各页面是否只剩骨架屏（这类问题肉眼看不出来） |
+| `node scripts/mobile-check.mjs` | 移动端审计 8 项（安全区 / 点按延迟 / iOS 缩放 / hover 粘住） |
+
+## 移动端（手机上像不像原生应用）
+
+这类问题在桌面浏览器上完全看不出来，`node scripts/mobile-check.mjs` 用 iPhone 14 Pro
+的视口、`isMobile` + `hasTouch` 实测，当前 **8/8 通过**：
+
+| 项 | 做法 |
+|---|---|
+| 刘海 / Home 指示条 | `viewportFit: "cover"` + `.safe-top` / `.safe-bottom` / `.safe-x`（`env(safe-area-inset-*)`） |
+| 点按延迟约 300ms | 可点元素 `touch-action: manipulation` |
+| 点按蓝色高亮框 | `-webkit-tap-highlight-color: transparent` |
+| iOS 聚焦输入框自动放大整页 | 输入框字号必须 ≥16px（用 `text-body`） |
+| 触屏上 hover "粘住" | **所有** hover 都包在 `@media (hover: hover) and (pointer: fine)` 里 |
+| 双指缩放 | **不禁用**（不写 `maximum-scale` / `user-scalable=no`） |
 
 ## 无 JS 渐进增强（实测契约）
 

@@ -95,10 +95,57 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 移动端点击不要蓝框 */
+/* 移动端点击不要蓝框。
+   touch-action: manipulation 去掉点按的约 300ms 延迟（浏览器在等"是不是双击缩放"）；
+   这里只作用于可交互元素，不影响页面滚动与双指缩放。 */
 button,
-a {
+a,
+label,
+select,
+summary {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 输入类元素不需要 300ms 判断，但也不要禁用选择（长按要能选中文字） */
+input,
+textarea {
+  touch-action: manipulation;
+}
+
+/* 触屏上 hover 会"粘住"：点过一次之后，那只手指对应的元素会一直保持 hover 样式，
+   直到点别处。所有 hover 效果都必须包在 (hover: hover) 里。
+   这里定义一份"只在真能 hover 的设备上生效"的工具类，避免给 10 处 hover 逐个加媒体查询。 */
+@media (hover: hover) and (pointer: fine) {
+  .hover-ink:hover {
+    color: var(--color-ink);
+  }
+  .hover-dut:hover {
+    border-color: var(--color-dut);
+  }
+  .hover-amber:hover {
+    color: var(--color-amber);
+  }
+  .hover-dut-line:hover {
+    background-color: color-mix(in oklab, var(--color-dut-mist) 60%, transparent);
+  }
+  .hover-surface:hover {
+    background-color: var(--color-surface);
+  }
+}
+
+/* 安全区（iPhone 刘海屏 / Home 指示条）。
+   配合 layout.tsx 的 viewportFit: "cover" 才生效。
+   只在有安全区的设备上产生位移，普通浏览器 env() 取值为 0。 */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-x {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* ---------------- 交互反馈 ---------------- */

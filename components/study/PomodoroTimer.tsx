@@ -188,7 +188,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
             <button
               onClick={() => void finish(false)}
               disabled={saving}
-              className="press h-10 rounded-lg bg-white px-4 text-sm text-muted ring-1 ring-line transition-colors duration-150 hover:text-ink disabled:opacity-50"
+              className="press h-10 rounded-lg bg-white px-4 text-sm text-muted ring-1 ring-line transition-colors duration-150 hover-ink disabled:opacity-50"
             >
               结束并记录
             </button>
@@ -197,7 +197,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
         {running && (
           <button
             onClick={pause}
-            className="press h-10 rounded-lg bg-white px-6 text-sm text-ink ring-1 ring-line transition-colors duration-150 hover:bg-surface"
+            className="press hover-surface h-10 rounded-lg bg-white px-6 text-sm text-ink ring-1 ring-line transition-colors duration-150"
           >
             暂停
           </button>
