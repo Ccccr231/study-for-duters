@@ -46,6 +46,20 @@ const browser = await chromium.launch({ executablePath: CHROME, headless: true }
 
 // 等开场序列（首次进入会有 2.4s 的校徽推进）结束再截图，
 // 否则全新 context 下拍到的是开场层而不是页面。返回访问者不会有这一层。
+/**
+ * 截图前禁用滚动入场动画。
+ *
+ * 为什么需要：`.scroll-rise` 用 `animation-timeline: view()`，**视口外的元素
+ * 停在 opacity: 0**。而 `fullPage: true` 截图不会真的滚动页面，
+ * 于是视口以下的滚动入场元素全是不可见的 —— 设计对照图会缺掉时间轴后半段与校训带。
+ * （内容本身没问题，实测滚动到就有；这是截图工具的伪影。）
+ */
+async function disableScrollAnimations(page) {
+  await page.addStyleTag({
+    content: `.scroll-rise { animation: none !important; opacity: 1 !important; transform: none !important; }`,
+  });
+}
+
 async function waitIntroDone(page) {
   await page
     .waitForFunction(
@@ -69,6 +83,7 @@ try {
     for (const path of PUBLIC) {
       await pubPage.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
       await waitIntroDone(pubPage);
+  await disableScrollAnimations(pubPage);
       await pubPage.waitForTimeout(600); // 让入场动效走完
       await pubPage.screenshot({
         path: `${OUT}${vp.name}${path.replace(/\//g, "-") || "-root"}.png`,
@@ -127,6 +142,7 @@ try {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     for (const path of PRIVATE) {
       await page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
+  await disableScrollAnimations(page);
       await page.waitForTimeout(600); // 让入场动效走完
       const name = `${vp.name}${path.replace(/\//g, "-")}.png`;
       await page.screenshot({ path: `${OUT}${name}`, fullPage: true });
