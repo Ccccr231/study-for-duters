@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Study for DUTERS · 连小理学习台",
+    default: "Study for DUTERS · 学习台",
     template: "%s · Study for DUTERS",
   },
   description:
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // data-intro 的**默认值是 off**，脚本在首帧前把它改成 "1" 才播开场。
     // 这样禁用 JS 时开场层保持隐藏（否则那个全屏层会永久遮住整页）。
-    <html lang="zh-CN" className="h-full antialiased" data-intro="off">
+    <html lang="zh-CN" className="h-full antialiased" data-intro="off" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_BOOTSTRAP }} />
       </head>

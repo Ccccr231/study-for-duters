@@ -247,7 +247,7 @@ export function KnowledgePanel() {
         <div>
           <h2 className="text-sm font-medium text-ink">问自己的资料</h2>
           <p className="mt-0.5 text-meta text-muted">
-            先把资料传进来，再让连小理基于它回答。
+            先把资料传进来，再让学习教练基于它回答。
           </p>
         </div>
 

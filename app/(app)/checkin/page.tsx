@@ -20,7 +20,7 @@ export default async function CheckInPage() {
 
   const days = checkIns.map((c) => c.date.toISOString().slice(0, 10));
   const checkedToday = days.includes(today.toISOString().slice(0, 10));
-  // 连续天数统一走 lib/streak.ts 的纯函数（与报告、连小理共用同一套规则）
+  // 连续天数统一走 lib/streak.ts 的纯函数（与报告、学习教练共用同一套规则）
   const current = computeStreak(days, today.toISOString().slice(0, 10));
 
   return (

@@ -7,8 +7,9 @@ import { startOfToday } from "@/lib/date";
 
 export const metadata: Metadata = { title: "专注" };
 
-export default async function FocusPage() {
+export default async function FocusPage({ searchParams }: PageProps<"/focus">) {
   const user = await requireUser();
+  const { task } = await searchParams;
 
   const [tasks, sessions] = await Promise.all([
     prisma.task.findMany({
@@ -23,10 +24,18 @@ export default async function FocusPage() {
     }),
   ]);
 
+  if (typeof task === "string" && !tasks.some((item) => item.id === task)) {
+    const selected = await prisma.task.findFirst({
+      where: { id: task, userId: user.id, done: false },
+      select: { id: true, title: true },
+    });
+    if (selected) tasks.unshift(selected);
+  }
+
   const minutes = sessions.reduce((sum, s) => sum + s.duration, 0);
 
   return (
-      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-5 px-5 py-6">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-5 px-5 py-6">
       <div className="flex w-full items-center justify-between">
         <h1 className="text-xl font-medium tracking-tight text-ink">专注</h1>
         <div className="text-right">
@@ -35,7 +44,10 @@ export default async function FocusPage() {
         </div>
       </div>
 
-      <PomodoroTimer tasks={tasks} />
+      <PomodoroTimer
+        tasks={tasks}
+        initialTaskId={typeof task === "string" && tasks.some((item) => item.id === task) ? task : ""}
+      />
 
       {tasks.length === 0 && (
         <div className="flex w-full items-center gap-3 rounded-xl bg-white p-4 ring-1 ring-line">

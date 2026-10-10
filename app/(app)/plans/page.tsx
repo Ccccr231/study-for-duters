@@ -1,29 +1,37 @@
-import Link from "next/link";
 import type { Metadata } from "next";
-import { MagnoliaArt } from "@/components/dut/MagnoliaArt";
+import { PlanList } from "@/components/study/PlanList";
 import { createPlanAction } from "@/lib/actions/study";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = { title: "计划" };
 
-export default async function PlansPage() {
+const PAGE_SIZE = 30;
+
+export default async function PlansPage({ searchParams }: PageProps<"/plans">) {
   const user = await requireUser();
+  const { page: rawPage } = await searchParams;
+  const parsedPage = Number(rawPage);
+  const requestedPage = Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const total = await prisma.plan.count({ where: { userId: user.id, status: "active" } });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(requestedPage, totalPages);
 
   const plans = await prisma.plan.findMany({
     where: { userId: user.id, status: "active" },
     orderBy: { createdAt: "desc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     select: {
       id: true,
       title: true,
       goal: true,
-      endDate: true,
       _count: { select: { tasks: true } },
     },
   });
 
   return (
-      <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
+    <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-5 px-5 py-6">
       <h1 className="text-xl font-medium tracking-tight text-ink">学习计划</h1>
 
       <form
@@ -33,11 +41,13 @@ export default async function PlansPage() {
         <input
           name="title"
           required
+          maxLength={120}
           placeholder="计划名，例如「数据结构期末冲刺」"
           className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <input
           name="goal"
+          maxLength={500}
           placeholder="目标（可留空）"
           className="h-11 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
@@ -49,29 +59,10 @@ export default async function PlansPage() {
         </button>
       </form>
 
-      {plans.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl bg-white py-10 ring-1 ring-line">
-          <MagnoliaArt className="h-10 w-10" />
-          <p className="text-sm text-muted">还没有计划，先建一个</p>
-        </div>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {plans.map((plan) => (
-            <li key={plan.id}>
-              <Link
-                href={`/plans/${plan.id}`}
-                className="tap block rounded-xl bg-white p-4 ring-1 ring-line"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-body font-medium text-ink">{plan.title}</h2>
-                  <span className="text-xs text-muted">{plan._count.tasks} 个任务</span>
-                </div>
-                {plan.goal && <p className="mt-1 text-sm text-muted">{plan.goal}</p>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      <PlanList
+        plans={plans}
+        pagination={{ page, totalPages, previousHref: `/plans?page=${page - 1}`, nextHref: `/plans?page=${page + 1}` }}
+      />
     </div>
   );
 }

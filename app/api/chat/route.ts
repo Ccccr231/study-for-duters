@@ -1,6 +1,6 @@
 import { streamText } from "ai";
 import { PARSE_FAILURE_TEXT, parseLlmConfig } from "@/lib/ai/config";
-import { buildSystemPrompt } from "@/lib/ai/liaxiaoli";
+import { buildSystemPrompt } from "@/lib/ai/study-coach";
 import { chatModel } from "@/lib/ai/provider";
 import { currentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";

@@ -2,16 +2,20 @@
 
 面向大连理工学生（DUTERS）的学习台：**计划 → 专注 → 打卡 → 复盘**。
 
-> 面向 DUT 学生的个人开源项目，**非官方**。不使用学校官方校徽与标准字作为产品标识，视觉元素均为自绘。
+> 面向 DUT 学生的个人开源项目，**非官方**。站内“学习教练”是使用者自行配置模型的功能，不是学校与腾讯的“连小理”或 LearnBuddy。
 > 平台的 LLM 由使用者自行配置（Base URL / API Key / Model），**本项目不预置任何密钥**。
+
+## “连小理”应用赛道演示
+
+以高等数学 Stolz 定理为例：在本项目建立学习目标和任务，复制引导式提问到学校官方 LearnBuddy 中实际使用“连小理”，再把真实关键提示与本人独立验算结果手动记录回计划详情；番茄钟关联任务，形成可回看的学习过程。**本项目不接入、不代替、也不会自动读取官方 LearnBuddy 的对话。**录屏时应展示真实使用过程，不要把站内学习教练的回答冒充官方“连小理”。
 
 ## 当前进度
 
 - ✅ **W1**：账号（邮箱+密码）、学习计划与任务、番茄钟、打卡（连续天数 + 12 周热力图）、大工蓝主题、移动端布局
-- ✅ **W2**：连小理对话（流式）、知识库 RAG（PDF / Word / PPT / Excel / `.md` → 浏览器端解析 → 分块 → embedding → pgvector，未配 embedding 时降级 bigram 关键词检索）、设置页自填 LLM 配置（默认只存浏览器）
+- ✅ **W2**：站内学习教练对话（流式）、知识库 RAG（PDF / Word / PPT / Excel / `.md` → 浏览器端解析 → 分块 → embedding → pgvector，未配 embedding 时降级 bigram 关键词检索）、设置页自填 LLM 配置（默认只存浏览器）
 - ✅ **W3**：Agent Loop（Observe → Compute → Narrate，指标纯函数 + 33 例单测）、每日学习报告（`/reports`，落库 `Report` 表，建议 action 只展示不自动写库）、上线就绪（安全头 / 404 / 错误页 / 自绘图标 / robots）
 - ⏳ **上线**：Vercel 部署待执行（`DEPLOY.md` 是完整手册）；Vercel Cron 定时报告未做（受「LLM 配置默认只存浏览器」约束，见 PLAN §14 #13）
-- ✅ **验证**：接口级 e2e 17/17、浏览器 UI e2e 11/11（真实 Chrome + 真实 Neon）、单元测试 40/40
+- ✅ **验证**：项目包含接口级与浏览器 UI 验收脚本；当前改动以本次检查结果为准。
 
 详见 `PLAN.md`（方案与里程碑）、`DEPLOY.md`（上线手册）、`AUDIT-2026-09-28-静态审查.md`（Server Action 权属与幂等审查）、`REVIEW-2026-09-28.md`（外部执行审查记录）。
 
@@ -87,7 +91,7 @@ pnpm dev                  # http://localhost:3000
 
 | 项 | 结果 |
 |---|---|
-| 流式回答的播报次数 | **恰好 1 次**（"连小理回答完毕：…"），不是每个 token 刷一次 |
+| 流式回答的播报次数 | **恰好 1 次**（"学习教练回答完毕：…"），不是每个 token 刷一次 |
 | 计时数字 | **不是** live region（否则每秒刷爆读屏） |
 | 番茄钟归零 | 独立播报区播一次（读屏用户看不到"计时归零"这件事） |
 | 错误提示 | `role="alert"`（立即播报；`polite` 会被前面的内容排队挡住） |
@@ -140,7 +144,7 @@ pnpm dev                  # http://localhost:3000
 | 打卡 | ✅ | 同上，真实落库 |
 | 建计划 | ✅ | 同上，真实落库 |
 | 任务勾选 / 删除 | ✅ | `<form action={ServerAction}>` |
-| 连小理对话 / 知识库问答 / 模型设置 / 报告生成 | ❌ | 本来就要调 API 与流式渲染，无 JS 不可用 |
+| 学习教练对话 / 知识库问答 / 模型设置 / 报告生成 | ❌ | 本来就要调 API 与流式渲染，无 JS 不可用 |
 
 **两条必须守住的约束**（都踩过坑）：
 
@@ -173,11 +177,11 @@ app/
   (app)/plans         计划列表 / 计划详情（任务 CRUD）
   (app)/focus         番茄钟（25 / 45 分钟，结束落库）
   (app)/checkin       打卡 + 12 周热力图
-  (app)/chat          连小理对话（流式）
+  (app)/chat          学习教练对话（流式）
   (app)/knowledge     知识库：上传 PDF / Word / PPT / Excel / .md，检索问答
-  (app)/reports       学习报告：指标卡片 + 连小理 AI 总结 + 历史报告
+  (app)/reports       学习报告：指标卡片 + 学习教练 AI 总结 + 历史报告
   (app)/settings/model  LLM 配置（Base URL / Key / Model，默认只存浏览器）
-  api/chat            连小理流式接口（注入学习数据）
+  api/chat            学习教练流式接口（注入学习数据）
   api/knowledge/      ingest（分块+向量入库）/ ask（检索，降级 ILIKE）
   api/reports         生成每日报告（流式，结束后 upsert Report 表）
   api/settings/test   测试 LLM 连接（不回显上游错误）
@@ -186,7 +190,7 @@ lib/
   auth/               password（scrypt）· session（jose Cookie）· constants
   actions/            Server Actions：auth / study
   date.ts             按 UTC 切日的日期工具
-  ai/                 配置解析 · provider · 连小理 system prompt · 浏览器侧配置
+  ai/                 配置解析 · provider · 学习教练 system prompt · 浏览器侧配置
   rag/
     chunk.ts          Markdown 分块（800/120，小段合并）
     extract.ts        浏览器端解析 PDF / Word / PPT / Excel 为纯文本
@@ -197,7 +201,7 @@ components/
   dut/                海浪 · 主楼剪影 · 玉兰（自绘）
   shell/              底部导航（5 tab）
   study/              今日任务 · 番茄钟 · 打卡日历
-  liaxiaoli/          对话面板    knowledge/  知识库面板    settings/  模型设置
+  coach/              对话面板    knowledge/  知识库面板    settings/  模型设置
   reports/            报告生成面板
 proxy.ts              会话粗筛（Next 16 的 middleware 新约定）
 deploy/
@@ -249,6 +253,6 @@ deploy/
   与 `@img/sharp-win32-x64`（`Apache-2.0 AND LGPL-3.0-or-later`，Next 自带的可选图像优化二进制），
   这些不影响本项目以 MIT 分发。
 - **不预置任何资料**：知识库只承载用户自己上传的内容，仓库内不含第三方题库 / 教材 / 试卷。
-- **AI 生成内容**：连小理的回答由使用者自配的模型生成，可能出错；统计数字由 SQL / 纯函数算出（不经模型），
+- **AI 生成内容**：站内学习教练的回答由使用者自配的模型生成，可能出错；统计数字由 SQL / 纯函数算出（不经模型），
   但模型对数字的文字解读仍需自行判断。
 

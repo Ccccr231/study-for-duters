@@ -9,7 +9,7 @@ export default function KnowledgePage() {
       <div className="px-5 pt-5">
         <h1 className="text-xl font-medium tracking-tight text-ink">知识库</h1>
         <p className="mt-0.5 text-xs text-muted">
-          传 Markdown 笔记进来，连小理只基于你自己的资料回答
+          传 Markdown 笔记进来，学习教练只基于你自己的资料回答
         </p>
       </div>
       <KnowledgePanel />

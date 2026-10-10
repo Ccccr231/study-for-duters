@@ -19,7 +19,7 @@ export async function createPlanAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const title = String(formData.get("title") ?? "").trim();
   const goal = String(formData.get("goal") ?? "").trim();
-  if (!title) return;
+  if (!title || title.length > 120 || goal.length > 500) return;
 
   const start = startOfToday();
   const end = new Date(start.getTime() + 30 * DAY_MS); // 默认 30 天
@@ -42,13 +42,30 @@ export async function archivePlanAction(formData: FormData): Promise<void> {
   refresh();
 }
 
+export async function saveLearningEvidenceAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const planId = String(formData.get("planId") ?? "");
+  const guidance = String(formData.get("guidance") ?? "").trim();
+  const result = String(formData.get("result") ?? "").trim();
+  if (!planId || guidance.length > 2000 || result.length > 2000) return;
+
+  await prisma.plan.updateMany({
+    where: { id: planId, userId: user.id },
+    data: {
+      learnBuddyGuidance: guidance || null,
+      independentResult: result || null,
+    },
+  });
+  revalidatePath(`/plans/${planId}`);
+}
+
 /* ---------------- 任务 ---------------- */
 
 export async function createTaskAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const planId = String(formData.get("planId") ?? "");
   const title = String(formData.get("title") ?? "").trim();
-  if (!planId || !title) return;
+  if (!planId || !title || title.length > 200) return;
 
   const plan = await prisma.plan.findFirst({
     where: { id: planId, userId: user.id },

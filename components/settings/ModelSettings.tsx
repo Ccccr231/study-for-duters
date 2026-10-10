@@ -67,7 +67,7 @@ export function ModelSettings() {
               ready ? "bg-dut-mist text-dut-deep" : "bg-amber/10 text-amber"
             }`}
           >
-            {ready ? "已配置，连小理可以说话了。" : "还没配置完整，AI 功能会用引导卡片提示你。"}
+            {ready ? "已配置，学习教练可以说话了。" : "还没配置完整，AI 功能会用引导卡片提示你。"}
           </div>
 
           <label className="flex flex-col gap-1.5">
@@ -150,7 +150,7 @@ export function ModelSettings() {
               配好了就去
               {/* transform 对纯行内链接无效，inline-block 才能让 .tap 真的缩一下 */}
               <Link href="/chat" className="tap inline-block text-dut">
-                跟连小理说两句
+                跟学习教练说两句
               </Link>
               。
             </p>

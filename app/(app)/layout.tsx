@@ -17,9 +17,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4 sm:max-w-3xl">
           <Link href="/today" className="tap flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-dut text-xs text-white">
-              连
+              学
             </span>
-            <span className="text-sm font-medium text-dut-deep">连小理</span>
+            <span className="text-sm font-medium text-dut-deep">学习台</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/knowledge" className="tap text-sm text-muted transition-colors duration-150 hover-ink">

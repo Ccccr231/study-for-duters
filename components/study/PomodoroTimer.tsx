@@ -12,10 +12,10 @@ const C = 2 * Math.PI * R;
 
 type TaskOption = { id: string; title: string };
 
-export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
+export function PomodoroTimer({ tasks, initialTaskId = "" }: { tasks: TaskOption[]; initialTaskId?: string }) {
   const router = useRouter();
   const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
-  const [taskId, setTaskId] = useState<string>("");
+  const [taskId, setTaskId] = useState<string>(initialTaskId);
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(DEFAULT_MINUTES * 60);
   const [saving, setSaving] = useState(false);
@@ -145,6 +145,7 @@ export function PomodoroTimer({ tasks }: { tasks: TaskOption[] }) {
 
       {tasks.length > 0 && (
         <select
+          aria-label="关联任务"
           value={taskId}
           onChange={(e) => setTaskId(e.target.value)}
           disabled={started}

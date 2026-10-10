@@ -7,7 +7,7 @@ import { hasLlmConfig, loadLlmConfig } from "@/lib/ai/client-config";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-const OPENING = "今天想先学什么？我把你的待办和打卡数据都看过了。";
+const OPENING = "今天想先学什么？我会参考你的待办和打卡数据。";
 
 /**
  * 给读屏播报用的截断。
@@ -103,7 +103,7 @@ export function ChatPanel() {
       // 不能给正文加 aria-live：那样每个 token 都会触发一次播报，读屏会被刷屏；
       // 也不能不播报，否则读屏用户根本不知道回答已经来了。
       // 折中：正文保持普通节点，另用一个隐藏的 role="status" 在完成时播一次。
-      setAnnouncement(`连小理回答完毕：${truncateForSpeech(acc)}`);
+      setAnnouncement(`学习教练回答完毕：${truncateForSpeech(acc)}`);
     } catch {
       setError("网络中断，等一下再试");
       setMessages(next);
@@ -120,7 +120,7 @@ export function ChatPanel() {
     return (
       <div className="panel-in mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col items-center gap-4 px-5 py-10">
         <MagnoliaArt className="h-12 w-12" />
-        <p className="text-center text-body text-ink">连小理还没接上模型</p>
+        <p className="text-center text-body text-ink">学习教练还没接上模型</p>
         <p className="text-center text-sm text-muted">
           这个平台不预置任何密钥，需要你自己填 Base URL、API Key 和模型名。
         </p>
@@ -138,7 +138,7 @@ export function ChatPanel() {
     <div className="mx-auto flex w-full max-w-2xl sm:max-w-3xl flex-col gap-4 px-5 py-5">
       {messages.length === 0 && (
         <div className="rounded-xl bg-white p-4 text-body text-ink ring-1 ring-line">
-          <span className="mr-1 font-medium text-dut">连小理：</span>
+          <span className="mr-1 font-medium text-dut">学习教练：</span>
           {OPENING}
         </div>
       )}
@@ -162,11 +162,11 @@ export function ChatPanel() {
             }`}
           >
             {m.role === "assistant" && (
-              <span className="mr-1 font-medium text-dut">连小理：</span>
+              <span className="mr-1 font-medium text-dut">学习教练：</span>
             )}
             {m.content ||
               (streaming ? (
-                <span className="thinking-dots text-muted" aria-label="连小理正在思考">
+                <span className="thinking-dots text-muted" aria-label="学习教练正在思考">
                   …
                 </span>
               ) : (
@@ -194,7 +194,7 @@ export function ChatPanel() {
             }
           }}
           placeholder="问点什么，回车发送"
-          aria-label="给连小理发消息"
+          aria-label="给学习教练发消息"
           className="h-11 flex-1 rounded-lg border border-line bg-white px-3 text-body outline-none transition-colors duration-150 focus:border-dut"
         />
         <button

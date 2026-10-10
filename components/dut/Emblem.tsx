@@ -26,14 +26,14 @@ export function Emblem({
 }) {
   const [failed, setFailed] = useState(false);
 
-  // 图片缺失时不留破图：退回「连」字圆形徽标（与站内头部标识一致）
+  // 图片缺失时不留破图：退回自绘的「学」字圆形标识。
   if (failed) {
     return (
       <span
         className={`flex items-center justify-center rounded-full bg-dut text-white ring-2 ring-white/25 ${className}`}
-        aria-label="连小理"
+        aria-label="学习台"
       >
-        <span className="text-[0.42em] font-medium">连</span>
+        <span className="text-[0.42em] font-medium">学</span>
       </span>
     );
   }

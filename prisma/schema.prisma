@@ -41,6 +41,8 @@ model Plan {
   userId    String
   title     String // "数据结构期末冲刺"
   goal      String? // 目标描述
+  learnBuddyGuidance String? // 从学校 LearnBuddy 手动整理的真实提示
+  independentResult String? // 学生独立验证后的结果
   startDate DateTime
   endDate   DateTime
   status    String   @default("active") // active | archived

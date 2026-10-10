@@ -97,7 +97,7 @@ export function parseNarration(text: string): Narration {
         actions.push({
           type: "create_task",
           title: title.slice(0, MAX_TITLE_LEN),
-          reason: (reason || "连小理根据你的学习数据建议").slice(0, MAX_REASON_LEN),
+          reason: (reason || "学习教练根据你的学习数据建议").slice(0, MAX_REASON_LEN),
         });
       }
     }

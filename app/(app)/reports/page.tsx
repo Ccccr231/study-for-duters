@@ -129,7 +129,7 @@ export default async function ReportsPage() {
 
       {suggestions.length > 0 && (
         <section className="rounded-xl bg-white p-4 ring-1 ring-line">
-          <h2 className="text-sm font-medium text-ink">连小理建议</h2>
+          <h2 className="text-sm font-medium text-ink">学习教练建议</h2>
           <ul className="mt-2 flex flex-col gap-2">
             {suggestions.map((a, i) => (
               <li key={i} className="text-sm text-ink">
