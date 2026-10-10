@@ -61,7 +61,7 @@ export default async function PlanPreviewPage({ searchParams }: { searchParams: 
           nextHref: `/dev/plan-preview?data=${selected}&page=${page + 1}`,
         }}
       />
-      <nav aria-label="测试数据" className="fixed inset-x-2 bottom-4 z-50 mx-auto flex w-fit max-w-[calc(100vw-1rem)] overflow-x-auto rounded-md border border-line bg-white p-1 shadow-lg">
+      <nav aria-label="测试数据" className="fixed inset-x-2 bottom-16 z-50 mx-auto flex w-fit max-w-[calc(100vw-1rem)] overflow-x-auto rounded-md border border-line bg-white p-1 shadow-lg">
         {cases.map(([value, label]) => (
           <Link
             key={value}
